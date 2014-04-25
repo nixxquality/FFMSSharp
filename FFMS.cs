@@ -7,6 +7,9 @@ namespace FFMSsharp
 
     static partial class Interop
     {
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
+        public static extern bool SetDllDirectory(string lpPathName);
+
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern void FFMS_Init(int unused, int UseUTF8Paths);
 
@@ -227,12 +230,23 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_Init</c>.</para>
         /// <para>Must be called before anything else.</para>
         /// </remarks>
-        public static void Initialize()
+        public static void Initialize(string DllLocation = null)
         {
             if (initialized)
                 return;
-            
-            Interop.FFMS_Init(0, 0);
+
+            if (DllLocation != null)
+                Interop.SetDllDirectory(DllLocation);
+
+            try
+            {
+                Interop.FFMS_Init(0, 0);
+            }
+            catch (BadImageFormatException e)
+            {
+                throw new Exception("Cannot locate ffms2.dll");
+            }
+
             presentSources = Interop.FFMS_GetPresentSources();
             enabledSources = Interop.FFMS_GetEnabledSources();
 

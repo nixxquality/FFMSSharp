@@ -7,7 +7,7 @@ using System.Resources;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FFMS#")]
-[assembly: AssemblyDescription("FFMS2 wrapper for C3")]
+[assembly: AssemblyDescription("FFMS2 wrapper for C#")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("FFMS#")]

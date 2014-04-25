@@ -959,7 +959,7 @@
             Index destruction
             </summary>
             <remarks>
-            <para>In FFMS2, the equivalent is <c>FFMS_DestroyFFMS_Index</c>.</para>
+            <para>In FFMS2, the equivalent is <c>FFMS_DestroyIndex</c>.</para>
             </remarks>
         </member>
         <member name="M:FFMSsharp.Index.GetSourceType">
@@ -1861,7 +1861,7 @@
             Container for generic FFMS2 functions
             </summary>
         </member>
-        <member name="M:FFMSsharp.FFMS2.Initialize">
+        <member name="M:FFMSsharp.FFMS2.Initialize(System.String)">
             <summary>
             Initialize the FFMS2 library
             </summary>

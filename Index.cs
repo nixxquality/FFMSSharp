@@ -12,7 +12,7 @@ namespace FFMSsharp
         public static extern IntPtr FFMS_ReadIndex(string IndexFile, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
-        public static extern void FFMS_DestroyFFMS_Index(IntPtr Index);
+        public static extern void FFMS_DestroyIndex(IntPtr Index);
 
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern int FFMS_GetSourceType(IntPtr Index);
@@ -222,12 +222,12 @@ namespace FFMSsharp
         /// Index destruction
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_DestroyFFMS_Index</c>.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_DestroyIndex</c>.</para>
         /// </remarks>
         ~Index()
         {
             if (FFMS_Index != IntPtr.Zero)
-                Interop.FFMS_DestroyFFMS_Index(FFMS_Index);
+                Interop.FFMS_DestroyIndex(FFMS_Index);
         }
 
         #endregion
