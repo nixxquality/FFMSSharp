@@ -162,27 +162,6 @@ namespace FFMSsharp
         }
     }
 
-    /// <summary>
-    /// Simple representation of dimensions
-    /// </summary>
-    public class Size
-    {
-        /// <summary>
-        /// The width
-        /// </summary>
-        public int Width;
-        /// <summary>
-        /// The height
-        /// </summary>
-        public int Height;
-
-        internal Size(int Width, int Height)
-        {
-            this.Width = Width;
-            this.Height = Height;
-        }
-    }
-
     #endregion
 
     /// <summary>
