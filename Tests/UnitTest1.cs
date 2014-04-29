@@ -105,6 +105,22 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void IndexGetTrackTooHigh()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            index.GetTrack(6);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void IndexGetTrackNegative()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            index.GetTrack(-1);
+        }
+
+        [TestMethod]
         public void VideoSourceAndAPIFunctions()
         {
             Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));

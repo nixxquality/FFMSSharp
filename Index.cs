@@ -445,7 +445,6 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromIndex</c>.</para>
         /// <para>Use this function if you don't want to (or cannot) open the track with <see cref="VideoSource">VideoSource</see> or <see cref="AudioSource">AudioSource</see> first.</para>
         /// <para>If you already have a <see cref="FFMSsharp.VideoSource">VideoSource object</see> or <see cref="FFMSsharp.AudioSource">AudioSource object</see> it's safer to use <see cref="FFMSsharp.VideoSource.GetTrack">GetTrack</see>/<see cref="FFMSsharp.AudioSource.GetTrack">GetTrack</see> instead.</para>
-        /// <para>Specifying a nonexistent or invalid track number leads to undefined behavior.</para>
         /// <para>The returned <see cref="FFMSsharp.Track">Track object</see> is only valid until its parent <see cref="Index">Index object</see> is destroyed.</para>
         /// <para>Requesting indexing information for a track that has not been indexed will not cause an error, it will just return an empty FFMS_Track (check for >0 frames using <see cref="FFMSsharp.Track.GetNumFrames">GetNumFrames</see> to see if the returned object actually contains indexing information).</para>
         /// </remarks>
@@ -453,9 +452,13 @@ namespace FFMSsharp
         /// <returns>The generated <see cref="FFMSsharp.Track">Track object</see></returns>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
+        /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public Track GetTrack(int Track)
         {
             IntPtr track = IntPtr.Zero;
+
+            if (Track < 0 || Track > Interop.FFMS_GetNumTracks(FFMS_Index))
+                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist");
 
             track = Interop.FFMS_GetTrackFromIndex(FFMS_Index, Track);
 

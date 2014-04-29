@@ -1088,7 +1088,6 @@
             <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromIndex</c>.</para>
             <para>Use this function if you don't want to (or cannot) open the track with <see cref="M:FFMSsharp.Index.VideoSource(System.String,System.Int32,System.Int32,FFMSsharp.SeekMode)">VideoSource</see> or <see cref="M:FFMSsharp.Index.AudioSource(System.String,System.Int32,FFMSsharp.AudioDelayModes)">AudioSource</see> first.</para>
             <para>If you already have a <see cref="T:FFMSsharp.VideoSource">VideoSource object</see> or <see cref="T:FFMSsharp.AudioSource">AudioSource object</see> it's safer to use <see cref="M:FFMSsharp.VideoSource.GetTrack">GetTrack</see>/<see cref="M:FFMSsharp.AudioSource.GetTrack">GetTrack</see> instead.</para>
-            <para>Specifying a nonexistent or invalid track number leads to undefined behavior.</para>
             <para>The returned <see cref="T:FFMSsharp.Track">Track object</see> is only valid until its parent <see cref="T:FFMSsharp.Index">Index object</see> is destroyed.</para>
             <para>Requesting indexing information for a track that has not been indexed will not cause an error, it will just return an empty FFMS_Track (check for &gt;0 frames using <see cref="M:FFMSsharp.Track.GetNumFrames">GetNumFrames</see> to see if the returned object actually contains indexing information).</para>
             </remarks>
@@ -1096,6 +1095,7 @@
             <returns>The generated <see cref="T:FFMSsharp.Track">Track object</see></returns>
             <seealso cref="M:FFMSsharp.Index.GetFirstTrackOfType(FFMSsharp.TrackType)"/>
             <seealso cref="M:FFMSsharp.Index.GetFirstIndexedTrackOfType(FFMSsharp.TrackType)"/>
+            <exception cref="T:System.ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         </member>
         <member name="T:FFMSsharp.Sources">
             <summary>
