@@ -215,7 +215,6 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackTypeI</c>.</para>
         /// <para>Does the same thing as <see cref="FFMSsharp.Track.Type">Track.Type</see> but does not require having the file indexed first.</para>
         /// <para>If you have indexed the file, use <see cref="FFMSsharp.Track.Type">Track.Type</see> instead since the <c>FFMS_Indexer</c> object is destroyed when the index is created.</para>
-        /// <para>Note that specifying an invalid track number may lead to undefined behavior.</para>
         /// </remarks>
         /// <param name="Track">Track number</param>
         /// <returns>Track type</returns>
@@ -234,12 +233,15 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS2_GetCodecNameI</c>.</para>
-        /// <para>Note that specifying an invalid track number may lead to undefined behavior.</para>
         /// </remarks>
         /// <param name="Track">Track number</param>
         /// <returns>The human-readable name ("long name" in FFmpeg terms) of the codec</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public string GetCodecName(int Track)
         {
+            if (Track < 0 || Track > Interop.FFMS_GetNumTracksI(FFMS_Indexer))
+                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
+
             return Marshal.PtrToStringAnsi(Interop.FFMS_GetCodecNameI(FFMS_Indexer, Track));
         }
 

@@ -1217,7 +1217,6 @@
             <para>In FFMS2, the equivalent is <c>FFMS_GetTrackTypeI</c>.</para>
             <para>Does the same thing as <see cref="P:FFMSsharp.Track.Type">Track.Type</see> but does not require having the file indexed first.</para>
             <para>If you have indexed the file, use <see cref="P:FFMSsharp.Track.Type">Track.Type</see> instead since the <c>FFMS_Indexer</c> object is destroyed when the index is created.</para>
-            <para>Note that specifying an invalid track number may lead to undefined behavior.</para>
             </remarks>
             <param name="Track">Track number</param>
             <returns>Track type</returns>
@@ -1230,10 +1229,10 @@
             </summary>
             <remarks>
             <para>In FFMS2, the equivalent is <c>FFMS2_GetCodecNameI</c>.</para>
-            <para>Note that specifying an invalid track number may lead to undefined behavior.</para>
             </remarks>
             <param name="Track">Track number</param>
             <returns>The human-readable name ("long name" in FFmpeg terms) of the codec</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         </member>
         <member name="M:FFMSsharp.Indexer.GetFormatName">
             <summary>
