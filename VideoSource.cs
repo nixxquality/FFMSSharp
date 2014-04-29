@@ -320,19 +320,23 @@ namespace FFMSsharp
         /// </param>
         /// <param name="Width">The desired image width, in pixels
         /// <para>If you do not want to resize just pass the input dimensions.</para>
-        /// <para>Passing invalid dimensions (like 0 or negative) has undefined behavior.</para>
         /// </param>
         /// <param name="Height">The desired image height, in pixels
         /// <para>If you do not want to resize just pass the input dimensions.</para>
-        /// <para>Passing invalid dimensions (like 0 or negative) has undefined behavior.</para>
         /// </param>
         /// <param name="Resizer">The desired image resizing algorithm.
         /// <para>You must choose one even if you're not actually rescaling the image, because the video may change resolution mid-stream and then you will be using a resizer whether you want it or not (you will only know that the resolution changed after you actually decoded a frame with a new resolution), and it may also get used for rescaling subsampled chroma planes.</para>
         /// </param>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="ResetOutputFormat"/>
+        /// <exception cref="ArgumentOutOfRangeException">Trying to set the desired image resolution to an invalid size like 0, 0.</exception>
         public void SetOutputFormat(List<int> TargetFormats, int Width, int Height, Resizers Resizer)
         {
+            if (Width <= 0)
+                throw new ArgumentOutOfRangeException("Width", "Invalid image width.");
+            if (Height <= 0)
+                throw new ArgumentOutOfRangeException("Height", "Invalid image height.");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
