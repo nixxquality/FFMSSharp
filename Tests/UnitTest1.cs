@@ -147,6 +147,28 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void VideoSourceGetFrameIntOutOfRange()
+        {
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            source.GetFrame(3000);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void VideoSourceGetFrameDoubleOutOfRange()
+        {
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            source.GetFrame((double)80);
+        }
+
+        [TestMethod]
         public void FrameAndAPIFunctions()
         {
             Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));

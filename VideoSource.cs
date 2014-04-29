@@ -427,13 +427,16 @@ namespace FFMSsharp
         /// </remarks>
         /// <param name="Frame">The frame number to get
         /// <para>Frame numbering starts from zero, and hence the first frame is number 0 (not 1) and the last frame is number <see cref="NumFrames">NumFrames</see> - 1.</para>
-        /// <para>Requesting a frame number beyond the stream end or before the stream start (i.e. negative) may cause undefined behavior.</para>
         /// </param>
         /// <returns>The generated <see cref="Frame">Frame object</see>.</returns>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="GetFrame(double)"/>
+        /// <exception cref="ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
         public Frame GetFrame(int Frame)
         {
+            if (Frame < 0 || Frame > NumFrames - 1)
+                throw new ArgumentOutOfRangeException("Frame", "That frame doesn't exist.");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
@@ -463,8 +466,12 @@ namespace FFMSsharp
         /// <returns>The generated <see cref="Frame">Frame object</see>.</returns>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="GetFrame(int)"/>
+        /// <exception cref="ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
         public Frame GetFrame(double Time)
         {
+            if (Time < 0 || Time > LastTime)
+                throw new ArgumentOutOfRangeException("Time", "That frame doesn't exist.");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);

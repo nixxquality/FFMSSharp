@@ -1635,11 +1635,11 @@
             </remarks>
             <param name="Frame">The frame number to get
             <para>Frame numbering starts from zero, and hence the first frame is number 0 (not 1) and the last frame is number <see cref="P:FFMSsharp.VideoSource.NumFrames">NumFrames</see> - 1.</para>
-            <para>Requesting a frame number beyond the stream end or before the stream start (i.e. negative) may cause undefined behavior.</para>
             </param>
             <returns>The generated <see cref="T:FFMSsharp.Frame">Frame object</see>.</returns>
             <exception cref="T:FFMSsharp.FFMSException"/>
             <seealso cref="M:FFMSsharp.VideoSource.GetFrame(System.Double)"/>
+            <exception cref="T:System.ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
         </member>
         <member name="M:FFMSsharp.VideoSource.GetFrame(System.Double)">
             <summary>
@@ -1655,6 +1655,7 @@
             <returns>The generated <see cref="T:FFMSsharp.Frame">Frame object</see>.</returns>
             <exception cref="T:FFMSsharp.FFMSException"/>
             <seealso cref="M:FFMSsharp.VideoSource.GetFrame(System.Int32)"/>
+            <exception cref="T:System.ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
         </member>
         <member name="M:FFMSsharp.VideoSource.GetTrack">
             <summary>
