@@ -224,7 +224,7 @@ namespace Tests
                 track.GetFrameInfo(20); // It won't pass this.
                 Assert.Fail();
             }
-            catch (Exception e)
+            catch
             { }
         }
 
