@@ -175,3 +175,10 @@ FakesAssemblies/
 
 #Ignore the solution file
 *.sln
+
+# Sandcastle
+Sandcastle/
+
+# Binary test files
+Tests/ffms2.dll
+Tests/*mkv
