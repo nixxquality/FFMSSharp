@@ -718,8 +718,8 @@
             </summary>
             <remarks>
             <para>In FFMS2, the equivalent is <c>FFMS_Frame-&gt;RepeatPict</c>.</para>
-            <para>The frame shall be displayed for 1+<see cref="P:FFMSsharp.Frame.RepeatPict"/> time units, where the time units are expressed in the special RFF timebase available in <see cref="P:FFMSsharp.VideoSource.RFF"/>.</para>
-            <para>Note that if you actually end up using this, you need to ignore the usual timestamps (calculated via the <see cref="P:FFMSsharp.Track.TimeBase"/> and the <see cref="P:FFMSsharp.FrameInfo.PTS"/>) since they are fundamentally incompatible with RFF flags.</para>
+            <para>The frame shall be displayed for 1+<see cref="P:FFMSsharp.Frame.RepeatPict"/> time units, where the time units are expressed in the special RFF timebase available in <see cref="P:FFMSsharp.VideoSource.RFFNumerator"/> and <see cref="P:FFMSsharp.VideoSource.RFFDenominator"/>.</para>
+            <para>Note that if you actually end up using this, you need to ignore the usual timestamps (calculated via the <see cref="P:FFMSsharp.Track.TimeBaseNumerator"/>/<see cref="P:FFMSsharp.Track.TimeBaseDenominator"/> and the <see cref="P:FFMSsharp.FrameInfo.PTS"/>) since they are fundamentally incompatible with RFF flags.</para>
             </remarks>
         </member>
         <member name="P:FFMSsharp.Frame.InterlacedFrame">
@@ -780,7 +780,7 @@
             </summary>
             <remarks>
             <para>In FFMS2, the equivalent is <c>FFMS_FrameInfo-&gt;PTS</c>.</para>
-            <para>To convert this to a timestamp in wallclock milliseconds, use the relation long timestamp = (long)((<see cref="P:FFMSsharp.FrameInfo.PTS"/> * <see cref="P:FFMSsharp.Track.TimeBase">Track.TimeBase.Numerator</see>) / (double)<see cref="P:FFMSsharp.Track.TimeBase">Track.TimeBase.Denumerator</see>).</para>
+            <para>To convert this to a timestamp in wallclock milliseconds, use the relation long timestamp = (long)((<see cref="P:FFMSsharp.FrameInfo.PTS"/> * <see cref="P:FFMSsharp.Track.TimeBaseNumerator">Track.TimeBase.Numerator</see>) / (double)<see cref="P:FFMSsharp.Track.TimeBaseDenominator">Track.TimeBase.Denumerator</see>).</para>
             </remarks>
         </member>
         <member name="P:FFMSsharp.FrameInfo.RepeatPict">
@@ -1402,7 +1402,7 @@
             <param name="Frame">Frame number</param>
             <returns>The generated <see cref="T:FFMSsharp.FrameInfo">FrameInfo object</see>.</returns>
         </member>
-        <member name="P:FFMSsharp.Track.TimeBase">
+        <member name="P:FFMSsharp.Track.TimeBaseNumerator">
             <summary>
             The basic time unit of the track
             </summary>
@@ -1411,6 +1411,18 @@
             <para>Only meaningful for video tracks.</para>
             <para>Note that while this rational number may occasionally turn out to be equal to 1/framerate for some CFR video tracks, it really has no relation whatsoever with the video framerate and you should definitely not assume anything framerate-related based on it.</para>
             </remarks>
+            <seealso cref="P:FFMSsharp.Track.TimeBaseDenominator"/>
+        </member>
+        <member name="P:FFMSsharp.Track.TimeBaseDenominator">
+            <summary>
+            The basic time unit of the track
+            </summary>
+            <remarks>
+            <para>In FFMS2, the equivalent is <c>FFMS_TrackTimeBase</c> and <c>FFMS_GetTimeBase</c>.</para>
+            <para>Only meaningful for video tracks.</para>
+            <para>Note that while this rational number may occasionally turn out to be equal to 1/framerate for some CFR video tracks, it really has no relation whatsoever with the video framerate and you should definitely not assume anything framerate-related based on it.</para>
+            </remarks>
+            <seealso cref="P:FFMSsharp.Track.TimeBaseNumerator"/>
         </member>
         <member name="P:FFMSsharp.Track.Type">
             <summary>
@@ -1592,7 +1604,7 @@
             </summary>
             <remarks>
             <para>In FFMS2, the equivalent is <c>FFMS2_SetInputFormatV</c>.</para>
-            <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="M:FFMSsharp.VideoSource.GetFrame(System.Int32)">GetFrame</see>, until the next time you call <see cref="M:FFMSsharp.VideoSource.SetInputFormat(FFMSsharp.ColorSpaces,FFMSsharp.ColorRanges)">SetInputFormat</see> or <see cref="M:FFMSsharp.VideoSource.ResetInputFormat">ResetInputFormat</see>.</para>
+            <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="M:FFMSsharp.VideoSource.GetFrame(System.Int32)">GetFrame</see>, until the next time you call <see cref="M:FFMSsharp.VideoSource.SetInputFormat(System.Int32,FFMSsharp.ColorSpaces,FFMSsharp.ColorRanges)">SetInputFormat</see> or <see cref="M:FFMSsharp.VideoSource.ResetInputFormat">ResetInputFormat</see>.</para>
             <para>This is intended primarily for compatibility with programs which use the wrong YUV colorspace when converting to or from RGB, but can also be useful for files which have incorrect colorspace flags.</para>
             <para>Values passed are not checked for sanity; if you wish you may tell FFMS2 to pretend that a RGB files is actually YUV using this function, but doing so is unlikely to have useful results.</para>
             <para>This function only has an effect if the output format is also set with <see cref="M:FFMSsharp.VideoSource.SetOutputFormat(System.Collections.Generic.List{System.Int32},System.Int32,System.Int32,FFMSsharp.Resizers)">SetOutputFormat</see>.</para>
@@ -1655,26 +1667,51 @@
             </remarks>
             <returns>The generated <see cref="T:FFMSsharp.Track">Track object</see></returns>
         </member>
-        <member name="P:FFMSsharp.VideoSource.FPS">
+        <member name="P:FFMSsharp.VideoSource.FPSNumerator">
             <summary>
             The nominal framerate of the track
             </summary>
             <remarks>
-            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;FPSDenominator</c> and <c>FPSNumerator</c>.</para>
+            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;FPSNumerator</c>.</para>
             <para>For Matroska files, this number is based on the average frame duration of all frames, while for everything else it's based on the duration of the first frame.</para>
             <para>While it might seem tempting to use these values to extrapolate wallclock timestamps for each frame, you really shouldn't do that since it makes your code unable to handle variable framerate properly.</para>
             <para>The ugly reality is that these values are pretty much only useful for informational purposes; they are only somewhat reliable for antiquated containers like AVI.</para>
             <para>Normally they should never be used for practical purposes; generate individual frame timestamps from <see cref="P:FFMSsharp.FrameInfo.PTS">FrameInfo.PTS</see> instead.</para>
             </remarks>
+            <seealso cref="P:FFMSsharp.VideoSource.FPSDenominator"/>
         </member>
-        <member name="P:FFMSsharp.VideoSource.RFF">
+        <member name="P:FFMSsharp.VideoSource.FPSDenominator">
+            <summary>
+            The nominal framerate of the track
+            </summary>
+            <remarks>
+            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;FPSDenominator</c>.</para>
+            <para>For Matroska files, this number is based on the average frame duration of all frames, while for everything else it's based on the duration of the first frame.</para>
+            <para>While it might seem tempting to use these values to extrapolate wallclock timestamps for each frame, you really shouldn't do that since it makes your code unable to handle variable framerate properly.</para>
+            <para>The ugly reality is that these values are pretty much only useful for informational purposes; they are only somewhat reliable for antiquated containers like AVI.</para>
+            <para>Normally they should never be used for practical purposes; generate individual frame timestamps from <see cref="P:FFMSsharp.FrameInfo.PTS">FrameInfo.PTS</see> instead.</para>
+            </remarks>
+            <seealso cref="P:FFMSsharp.VideoSource.FPSNumerator"/>
+        </member>
+        <member name="P:FFMSsharp.VideoSource.RFFNumerator">
             <summary>
             The special RFF timebase
             </summary>
             <remarks>
-            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;RFFDenominator</c> and <c>RFFNumerator</c>.</para>
+            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;RFFNumerator</c>.</para>
             </remarks>
             <seealso cref="P:FFMSsharp.Frame.RepeatPict"/>
+            <seealso cref="P:FFMSsharp.VideoSource.RFFDenominator"/>
+        </member>
+        <member name="P:FFMSsharp.VideoSource.RFFDenominator">
+            <summary>
+            The special RFF timebase
+            </summary>
+            <remarks>
+            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;RFFDenominator</c>.</para>
+            </remarks>
+            <seealso cref="P:FFMSsharp.Frame.RepeatPict"/>
+            <seealso cref="P:FFMSsharp.VideoSource.RFFNumerator"/>
         </member>
         <member name="P:FFMSsharp.VideoSource.NumFrames">
             <summary>
@@ -1684,15 +1721,27 @@
             <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->NumFrames</c>.</para>
             </remarks>
         </member>
-        <member name="P:FFMSsharp.VideoSource.SampleAspectRatio">
+        <member name="P:FFMSsharp.VideoSource.SampleAspectRatioNumerator">
             <summary>
             Sample aspect ratio of the video frames
             </summary>
             <remarks>
-            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->SARNum</c> and <c>SARDen</c>.</para>
+            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;SARNum</c> and <c>SARDen</c>.</para>
             <para>Note that this is a metadata setting that you are free to ignore, but if you want the proper display aspect ratio with anamorphic material, you should honor it.</para>
             <para>On the other hand, there are situations (like when encoding) where you should probably ignore it because the user expects it to be ignored.</para>
             </remarks>
+            <seealso cref="P:FFMSsharp.VideoSource.SampleAspectRatioDenominator"/>
+        </member>
+        <member name="P:FFMSsharp.VideoSource.SampleAspectRatioDenominator">
+            <summary>
+            Sample aspect ratio of the video frames
+            </summary>
+            <remarks>
+            <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties-&gt;SARNum</c> and <c>SARDen</c>.</para>
+            <para>Note that this is a metadata setting that you are free to ignore, but if you want the proper display aspect ratio with anamorphic material, you should honor it.</para>
+            <para>On the other hand, there are situations (like when encoding) where you should probably ignore it because the user expects it to be ignored.</para>
+            </remarks>
+            <seealso cref="P:FFMSsharp.VideoSource.SampleAspectRatioNumerator"/>
         </member>
         <member name="P:FFMSsharp.VideoSource.Crop">
             <summary>
@@ -1786,36 +1835,6 @@
             Stuff which is only useful for libav* developers
             </summary>
         </member>
-        <member name="T:FFMSsharp.Rational">
-            <summary>
-            Simple representation of a rational int
-            </summary>
-        </member>
-        <member name="F:FFMSsharp.Rational.Numerator">
-            <summary>
-            The numerator
-            </summary>
-        </member>
-        <member name="F:FFMSsharp.Rational.Denominator">
-            <summary>
-            The denominator
-            </summary>
-        </member>
-        <member name="T:FFMSsharp.LongRational">
-            <summary>
-            Simple representation of a rational long
-            </summary>
-        </member>
-        <member name="F:FFMSsharp.LongRational.Numerator">
-            <summary>
-            The numerator
-            </summary>
-        </member>
-        <member name="F:FFMSsharp.LongRational.Denominator">
-            <summary>
-            The denominator
-            </summary>
-        </member>
         <member name="T:FFMSsharp.Selection">
             <summary>
             Simple representation of a selection rectangle
@@ -1839,21 +1858,6 @@
         <member name="F:FFMSsharp.Selection.Bottom">
             <summary>
             Amount of Bottom to crop
-            </summary>
-        </member>
-        <member name="T:FFMSsharp.Size">
-            <summary>
-            Simple representation of dimensions
-            </summary>
-        </member>
-        <member name="F:FFMSsharp.Size.Width">
-            <summary>
-            The width
-            </summary>
-        </member>
-        <member name="F:FFMSsharp.Size.Height">
-            <summary>
-            The height
             </summary>
         </member>
         <member name="T:FFMSsharp.FFMS2">

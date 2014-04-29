@@ -367,7 +367,7 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS2_SetInputFormatV</c>.</para>
-        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
+        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat(ColorSpaces, ColorRanges)">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
         /// <para>This is intended primarily for compatibility with programs which use the wrong YUV colorspace when converting to or from RGB, but can also be useful for files which have incorrect colorspace flags.</para>
         /// <para>Values passed are not checked for sanity; if you wish you may tell FFMS2 to pretend that a RGB files is actually YUV using this function, but doing so is unlikely to have useful results.</para>
         /// <para>This function only has an effect if the output format is also set with <see cref="SetOutputFormat">SetOutputFormat</see>.</para>
@@ -385,7 +385,7 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS2_SetInputFormatV</c>.</para>
-        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
+        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat(int, ColorSpaces, ColorRanges)">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
         /// <para>This is intended primarily for compatibility with programs which use the wrong YUV colorspace when converting to or from RGB, but can also be useful for files which have incorrect colorspace flags.</para>
         /// <para>Values passed are not checked for sanity; if you wish you may tell FFMS2 to pretend that a RGB files is actually YUV using this function, but doing so is unlikely to have useful results.</para>
         /// <para>This function only has an effect if the output format is also set with <see cref="SetOutputFormat">SetOutputFormat</see>.</para>

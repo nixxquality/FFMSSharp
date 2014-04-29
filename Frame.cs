@@ -217,8 +217,8 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->RepeatPict</c>.</para>
-        /// <para>The frame shall be displayed for 1+<see cref="RepeatPict"/> time units, where the time units are expressed in the special RFF timebase available in <see cref="VideoSource.RFF"/>.</para>
-        /// <para>Note that if you actually end up using this, you need to ignore the usual timestamps (calculated via the <see cref="Track.TimeBase"/> and the <see cref="FrameInfo.PTS"/>) since they are fundamentally incompatible with RFF flags.</para>
+        /// <para>The frame shall be displayed for 1+<see cref="RepeatPict"/> time units, where the time units are expressed in the special RFF timebase available in <see cref="VideoSource.RFFNumerator"/> and <see cref="VideoSource.RFFDenominator"/>.</para>
+        /// <para>Note that if you actually end up using this, you need to ignore the usual timestamps (calculated via the <see cref="Track.TimeBaseNumerator"/>/<see cref="Track.TimeBaseDenominator"/> and the <see cref="FrameInfo.PTS"/>) since they are fundamentally incompatible with RFF flags.</para>
         /// </remarks>
         public int RepeatPict
         { get { return FFMS_Frame.RepeatPict; } }

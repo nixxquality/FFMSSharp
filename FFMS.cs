@@ -179,7 +179,7 @@ namespace FFMSsharp
             {
                 Interop.FFMS_Init(0, 0);
             }
-            catch (BadImageFormatException e)
+            catch (BadImageFormatException)
             {
                 throw new Exception("Cannot locate ffms2.dll");
             }

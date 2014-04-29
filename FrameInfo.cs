@@ -29,7 +29,7 @@
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_FrameInfo->PTS</c>.</para>
-        /// <para>To convert this to a timestamp in wallclock milliseconds, use the relation long timestamp = (long)((<see cref="FrameInfo.PTS"/> * <see cref="Track.TimeBase">Track.TimeBase.Numerator</see>) / (double)<see cref="Track.TimeBase">Track.TimeBase.Denumerator</see>).</para>
+        /// <para>To convert this to a timestamp in wallclock milliseconds, use the relation long timestamp = (long)((<see cref="FrameInfo.PTS"/> * <see cref="Track.TimeBaseNumerator">Track.TimeBase.Numerator</see>) / (double)<see cref="Track.TimeBaseDenominator">Track.TimeBase.Denumerator</see>).</para>
         /// </remarks>
         public long PTS
         { get { return Info.PTS; } }
