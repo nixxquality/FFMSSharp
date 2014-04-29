@@ -90,48 +90,6 @@ namespace FFMSsharp
     #region Simple classes for special data representation
 
     /// <summary>
-    /// Simple representation of a rational int
-    /// </summary>
-    public class Rational
-    {
-        /// <summary>
-        /// The numerator
-        /// </summary>
-        public int Numerator;
-        /// <summary>
-        /// The denominator
-        /// </summary>
-        public int Denominator;
-
-        internal Rational(int Numerator, int Denominator)
-        {
-            this.Numerator = Numerator;
-            this.Denominator = Denominator;
-        }
-    }
-
-    /// <summary>
-    /// Simple representation of a rational long
-    /// </summary>
-    public class LongRational
-    {
-        /// <summary>
-        /// The numerator
-        /// </summary>
-        public long Numerator;
-        /// <summary>
-        /// The denominator
-        /// </summary>
-        public long Denominator;
-
-        internal LongRational(long Numerator, long Denominator)
-        {
-            this.Numerator = Numerator;
-            this.Denominator = Denominator;
-        }
-    }
-
-    /// <summary>
     /// Simple representation of a selection rectangle
     /// </summary>
     public class Selection

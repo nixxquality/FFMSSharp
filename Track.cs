@@ -115,8 +115,22 @@ namespace FFMSsharp
         /// <para>Only meaningful for video tracks.</para>
         /// <para>Note that while this rational number may occasionally turn out to be equal to 1/framerate for some CFR video tracks, it really has no relation whatsoever with the video framerate and you should definitely not assume anything framerate-related based on it.</para>
         /// </remarks>
-        public LongRational TimeBase
-        { get { return new LongRational(TrackTimeBase.Num, TrackTimeBase.Den); } }
+        /// <seealso cref="TimeBaseDenominator"/>
+        public long TimeBaseNumerator
+        { get { return TrackTimeBase.Num; } }
+
+        /// <summary>
+        /// The basic time unit of the track
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_TrackTimeBase</c> and <c>FFMS_GetTimeBase</c>.</para>
+        /// <para>Only meaningful for video tracks.</para>
+        /// <para>Note that while this rational number may occasionally turn out to be equal to 1/framerate for some CFR video tracks, it really has no relation whatsoever with the video framerate and you should definitely not assume anything framerate-related based on it.</para>
+        /// </remarks>
+        /// <seealso cref="TimeBaseNumerator"/>
+        public long TimeBaseDenominator
+        { get { return TrackTimeBase.Den; } }
+
         /// <summary>
         /// The <see cref="TrackType"/> of the track
         /// </summary>

@@ -112,10 +112,10 @@ namespace Tests
 
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
-            Assert.AreEqual(30000, source.FPS.Numerator);
-            Assert.AreEqual(15712911, source.RFF.Numerator);
+            Assert.AreEqual(30000, source.FPSNumerator);
+            Assert.AreEqual(15712911, source.RFFNumerator);
             Assert.AreEqual(2157, source.NumFrames);
-            Assert.AreEqual(409440, source.SampleAspectRatio.Numerator);
+            Assert.AreEqual(409440, source.SampleAspectRatioNumerator);
             Assert.AreEqual(0, source.Crop.Left);
             Assert.IsFalse(source.TopFieldFirst);
             Assert.AreEqual(0, source.FirstTime);
@@ -193,7 +193,7 @@ namespace Tests
             Track track = source.GetTrack();
 
             Assert.AreEqual(TrackType.Video, track.Type);
-            Assert.AreEqual(1, track.TimeBase.Numerator);
+            Assert.AreEqual(1, track.TimeBaseNumerator);
             Assert.AreEqual(2157, track.GetNumFrames());
 
             FrameInfo frameinfo = track.GetFrameInfo(20);
@@ -216,7 +216,7 @@ namespace Tests
             Track track = source.GetTrack();
 
             Assert.AreEqual(TrackType.Audio, track.Type);
-            Assert.AreEqual(1, track.TimeBase.Numerator);
+            Assert.AreEqual(1, track.TimeBaseNumerator);
             Assert.AreEqual(4490, track.GetNumFrames());
 
             try
@@ -237,7 +237,7 @@ namespace Tests
             Track track = index.GetTrack(2);
 
             Assert.AreEqual(TrackType.Subtitle, track.Type);
-            Assert.AreEqual(1, track.TimeBase.Numerator);
+            Assert.AreEqual(1, track.TimeBaseNumerator);
             Assert.AreEqual(0, track.GetNumFrames());
         }
     }

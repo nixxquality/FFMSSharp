@@ -172,23 +172,48 @@ namespace FFMSsharp
         /// The nominal framerate of the track
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->FPSDenominator</c> and <c>FPSNumerator</c>.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->FPSNumerator</c>.</para>
         /// <para>For Matroska files, this number is based on the average frame duration of all frames, while for everything else it's based on the duration of the first frame.</para>
         /// <para>While it might seem tempting to use these values to extrapolate wallclock timestamps for each frame, you really shouldn't do that since it makes your code unable to handle variable framerate properly.</para>
         /// <para>The ugly reality is that these values are pretty much only useful for informational purposes; they are only somewhat reliable for antiquated containers like AVI.</para>
         /// <para>Normally they should never be used for practical purposes; generate individual frame timestamps from <see cref="FrameInfo.PTS">FrameInfo.PTS</see> instead.</para>
         /// </remarks>
-        public Rational FPS
-        { get { return new Rational(VP.FPSNumerator, VP.FPSDenominator); } }
+        /// <seealso cref="FPSDenominator"/>
+        public int FPSNumerator
+        { get { return VP.FPSNumerator; } }
+        /// <summary>
+        /// The nominal framerate of the track
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->FPSDenominator</c>.</para>
+        /// <para>For Matroska files, this number is based on the average frame duration of all frames, while for everything else it's based on the duration of the first frame.</para>
+        /// <para>While it might seem tempting to use these values to extrapolate wallclock timestamps for each frame, you really shouldn't do that since it makes your code unable to handle variable framerate properly.</para>
+        /// <para>The ugly reality is that these values are pretty much only useful for informational purposes; they are only somewhat reliable for antiquated containers like AVI.</para>
+        /// <para>Normally they should never be used for practical purposes; generate individual frame timestamps from <see cref="FrameInfo.PTS">FrameInfo.PTS</see> instead.</para>
+        /// </remarks>
+        /// <seealso cref="FPSNumerator"/>
+        public int FPSDenominator
+        { get { return VP.FPSDenominator; } }
         /// <summary>
         /// The special RFF timebase
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->RFFDenominator</c> and <c>RFFNumerator</c>.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->RFFNumerator</c>.</para>
         /// </remarks>
         /// <seealso cref="Frame.RepeatPict"/>
-        public Rational RFF
-        { get { return new Rational(VP.RFFNumerator, VP.RFFDenominator); } }
+        /// <seealso cref="RFFDenominator"/>
+        public int RFFNumerator
+        { get { return VP.RFFNumerator; } }
+        /// <summary>
+        /// The special RFF timebase
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->RFFDenominator</c>.</para>
+        /// </remarks>
+        /// <seealso cref="Frame.RepeatPict"/>
+        /// <seealso cref="RFFNumerator"/>
+        public int RFFDenominator
+        { get { return VP.RFFDenominator; } }
         /// <summary>
         /// The number of frames in the video track
         /// </summary>
@@ -205,8 +230,20 @@ namespace FFMSsharp
         /// <para>Note that this is a metadata setting that you are free to ignore, but if you want the proper display aspect ratio with anamorphic material, you should honor it.</para>
         /// <para>On the other hand, there are situations (like when encoding) where you should probably ignore it because the user expects it to be ignored.</para>
         /// </remarks>
-        public Rational SampleAspectRatio
-        { get { return new Rational(VP.SARNum, VP.SARDen); } }
+        /// <seealso cref="SampleAspectRatioDenominator"/>
+        public int SampleAspectRatioNumerator
+        { get { return VP.SARNum; } }
+        /// <summary>
+        /// Sample aspect ratio of the video frames
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->SARNum</c> and <c>SARDen</c>.</para>
+        /// <para>Note that this is a metadata setting that you are free to ignore, but if you want the proper display aspect ratio with anamorphic material, you should honor it.</para>
+        /// <para>On the other hand, there are situations (like when encoding) where you should probably ignore it because the user expects it to be ignored.</para>
+        /// </remarks>
+        /// <seealso cref="SampleAspectRatioNumerator"/>
+        public int SampleAspectRatioDenominator
+        { get { return VP.SARDen; } }
         /// <summary>
         /// The number of pixels you should crop the frame before displaying it
         /// </summary>
