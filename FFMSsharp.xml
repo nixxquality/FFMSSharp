@@ -1222,6 +1222,7 @@
             <param name="Track">Track number</param>
             <returns>Track type</returns>
             <seealso cref="P:FFMSsharp.Track.Type"/>
+            <exception cref="T:System.ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         </member>
         <member name="M:FFMSsharp.Indexer.GetCodecName(System.Int32)">
             <summary>

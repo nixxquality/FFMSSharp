@@ -54,6 +54,22 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void IndexerGetTrackTooHigh()
+        {
+            Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
+            indexer.GetTrackType(6);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void IndexerGetTrackNegative()
+        {
+            Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
+            indexer.GetTrackType(-1);
+        }
+
+        [TestMethod]
         public void IndexAndAPIFunctions()
         {
             Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));

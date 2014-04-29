@@ -458,7 +458,7 @@ namespace FFMSsharp
             IntPtr track = IntPtr.Zero;
 
             if (Track < 0 || Track > Interop.FFMS_GetNumTracks(FFMS_Index))
-                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist");
+                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
 
             track = Interop.FFMS_GetTrackFromIndex(FFMS_Index, Track);
 

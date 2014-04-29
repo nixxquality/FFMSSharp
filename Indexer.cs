@@ -220,8 +220,12 @@ namespace FFMSsharp
         /// <param name="Track">Track number</param>
         /// <returns>Track type</returns>
         /// <seealso cref="FFMSsharp.Track.Type"/>
+        /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public TrackType GetTrackType(int Track)
         {
+            if (Track < 0 || Track > Interop.FFMS_GetNumTracksI(FFMS_Indexer))
+                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
+
             return (TrackType)Interop.FFMS_GetTrackTypeI(FFMS_Indexer, Track);
         }
 
