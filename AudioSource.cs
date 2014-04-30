@@ -359,17 +359,21 @@ namespace FFMSsharp
         /// </remarks>
         /// <param name="Start">The first sample to decode
         /// <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="NumSamples"/> minus 1.</para>
-        /// <para>Requesting samples beyond the stream end or before the stream start may result in undefined behavior.</para>
         /// </param>
         /// <param name="Count">The amount of samples to decode
         /// <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="NumSamples"/> minus 1.</para>
-        /// <para>Requesting samples beyond the stream end or before the stream start may result in undefined behavior.</para>
         /// </param>
         /// <returns>The raw audio data</returns>
         /// <exception cref="FFMSException"/>
         /// <threadsafety instance="false"/>
+        /// <exception cref="ArgumentOutOfRangeException">Trying to access audio samples that are out of range of the stream.</exception>
         public byte[] GetAudio(long Start, long Count)
         {
+            if (Start < 0 || Start > NumSamples - 1)
+                throw new ArgumentOutOfRangeException("Start", "Invalid start sample.");
+            if (Count < 0 || Start + Count > NumSamples - 1)
+                throw new ArgumentOutOfRangeException("Count", "Invalid sample count.");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);

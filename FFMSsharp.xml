@@ -248,15 +248,14 @@
             </remarks>
             <param name="Start">The first sample to decode
             <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="P:FFMSsharp.AudioSource.NumSamples"/> minus 1.</para>
-            <para>Requesting samples beyond the stream end or before the stream start may result in undefined behavior.</para>
             </param>
             <param name="Count">The amount of samples to decode
             <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="P:FFMSsharp.AudioSource.NumSamples"/> minus 1.</para>
-            <para>Requesting samples beyond the stream end or before the stream start may result in undefined behavior.</para>
             </param>
             <returns>The raw audio data</returns>
             <exception cref="T:FFMSsharp.FFMSException"/>
             <threadsafety instance="false"/>
+            <exception cref="T:System.ArgumentOutOfRangeException">Trying to access audio samples that are out of range of the stream.</exception>
         </member>
         <member name="M:FFMSsharp.AudioSource.GetTrack">
             <summary>
