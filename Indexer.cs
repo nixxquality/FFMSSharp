@@ -166,15 +166,22 @@ namespace FFMSsharp
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
+        /// <summary>
+        /// Releases all resources used by the <see cref="Indexer"/>.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Releases the unmanaged resources used by the <see cref="Indexer"/> and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if(!disposed)
+            if (!disposed)
             {
                 if (FFMS_Indexer != IntPtr.Zero)
                 {
@@ -392,6 +399,7 @@ namespace FFMSsharp
         /// Delegate for the <see cref="OnIndexingCompleted">OnIndexingCompleted</see> event
         /// </summary>
         /// <param name="sender">The indexer</param>
+        /// <param name="e">Nothing!</param>
         public delegate void IndexingCompleted(object sender, EventArgs e);
         /// <summary>
         /// Called when the indexing has finished

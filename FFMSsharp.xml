@@ -954,6 +954,17 @@
             <exception cref="T:System.IO.IOException">Trying to read an invalid index file.</exception>
             <exception cref="T:System.NotSupportedException">Trying to read an index file for a <see cref="T:FFMSsharp.Sources">Source</see> that is not available in the ffms2.dll.</exception>
         </member>
+        <member name="M:FFMSsharp.Index.Dispose">
+            <summary>
+            Releases all resources used by the <see cref="T:FFMSsharp.Index"/>.
+            </summary>
+        </member>
+        <member name="M:FFMSsharp.Index.Dispose(System.Boolean)">
+            <summary>
+            Releases the unmanaged resources used by the <see cref="T:FFMSsharp.Index"/> and optionally releases the managed resources.
+            </summary>
+            <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        </member>
         <member name="M:FFMSsharp.Index.Finalize">
             <summary>
             Index destruction
@@ -1178,6 +1189,17 @@
             <param name="SourceFile">The media file</param>
             <param name="Demuxer">What demuxer to use</param>
         </member>
+        <member name="M:FFMSsharp.Indexer.Dispose">
+            <summary>
+            Releases all resources used by the <see cref="T:FFMSsharp.Indexer"/>.
+            </summary>
+        </member>
+        <member name="M:FFMSsharp.Indexer.Dispose(System.Boolean)">
+            <summary>
+            Releases the unmanaged resources used by the <see cref="T:FFMSsharp.Indexer"/> and optionally releases the managed resources.
+            </summary>
+            <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        </member>
         <member name="M:FFMSsharp.Indexer.Finalize">
             <summary>
             Indexer destruction
@@ -1299,6 +1321,7 @@
             Delegate for the <see cref="E:FFMSsharp.Indexer.OnIndexingCompleted">OnIndexingCompleted</see> event
             </summary>
             <param name="sender">The indexer</param>
+            <param name="e">Nothing!</param>
         </member>
         <member name="T:FFMSsharp.TrackType">
             <summary>
