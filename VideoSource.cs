@@ -349,7 +349,12 @@ namespace FFMSsharp
             targetFormats[TargetFormats.Count] = -1;
 
             if (NativeMethods.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormats, Width, Height, (int)Resizer, ref err) != 0)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                    throw new ArgumentException(err.Buffer);
+                else
+                    throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: '{0}'. Please report this issue on FFMSsharp's GitHub.", err.Buffer));
+            }
         }
 
         /// <summary>

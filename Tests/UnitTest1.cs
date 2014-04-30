@@ -191,6 +191,19 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void VideoSourceSetOutputFormatInvalid()
+        {
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            var list = new List<int>();
+            list.Add(FFMS2.GetPixFmt("none"));
+            source.SetOutputFormat(list, 100, 100, Resizers.Bilinear);
+        }
+
+        [TestMethod]
         public void FrameAndAPIFunctions()
         {
             Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
