@@ -327,9 +327,9 @@ namespace FFMSsharp
         /// <param name="Resizer">The desired image resizing algorithm.
         /// <para>You must choose one even if you're not actually rescaling the image, because the video may change resolution mid-stream and then you will be using a resizer whether you want it or not (you will only know that the resolution changed after you actually decoded a frame with a new resolution), and it may also get used for rescaling subsampled chroma planes.</para>
         /// </param>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="ResetOutputFormat"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to set the desired image resolution to an invalid size like 0, 0.</exception>
+        /// <exception cref="ArgumentException">Trying to set an invalid output format.</exception>
         public void SetOutputFormat(List<int> TargetFormats, int Width, int Height, Resizers Resizer)
         {
             if (Width <= 0)

@@ -202,7 +202,8 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_ReadIndex</c>.</para>
         /// </remarks>
         /// <param name="IndexFile">Can be an absolute or relative path</param>
-        /// <exception cref="FFMSException"/>
+        /// <exception cref="IOException">Trying to read an invalid index file.</exception>
+        /// <exception cref="NotSupportedException">Trying to read an index file for a <see cref="Sources">Source</see> that is not available in the ffms2.dll.</exception>
         public Index(string IndexFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
