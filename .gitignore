@@ -173,12 +173,9 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 
-#Ignore the solution file
-*.sln
-
 # Sandcastle
 Sandcastle/
 
 # Binary test files
-Tests/ffms2.dll
-Tests/*mkv
+FFMSsharp.Tests/ffms2.dll
+FFMSsharp.Tests/*mkv

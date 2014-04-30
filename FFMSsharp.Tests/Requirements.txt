@@ -1,0 +1,8 @@
+Download these two files from http://www.auby.no/files/video_tests/ :
+- h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv
+- h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv
+
+Download and extract ffms2.dll from :
+- https://github.com/FFMS/ffms2/releases
+
+And put them in this directory before running the tests.

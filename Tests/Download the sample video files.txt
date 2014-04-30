@@ -1,5 +1,0 @@
-Download these two files:
-http://www.auby.no/files/video_tests/h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv
-http://www.auby.no/files/video_tests/h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv
-
-And put them in this directory before running the tests.
