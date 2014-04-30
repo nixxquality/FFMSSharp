@@ -219,7 +219,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new NotSupportedException(err.Buffer);
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: '{0}'. Please report this issue on FFMSsharp's GitHub.", err.Buffer));
+                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -389,7 +389,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     return false;
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: '{0}'. Please report this issue on FFMSsharp's GitHub.", err.Buffer));
+                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return true;

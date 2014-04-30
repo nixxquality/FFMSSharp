@@ -353,7 +353,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
                     throw new ArgumentException(err.Buffer);
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: '{0}'. Please report this issue on FFMSsharp's GitHub.", err.Buffer));
+                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
