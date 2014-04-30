@@ -1,6 +1,8 @@
 FFMS#
 =====
 
+[![Build status](https://ci.appveyor.com/api/projects/status/mamdalshsmrq49rh)](https://ci.appveyor.com/project/nixxquality/ffmssharp)
+
 C# wrapper for [FFMS2](//github.com/ffms/ffms2)
 
 ### How to use
