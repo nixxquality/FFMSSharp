@@ -86,6 +86,15 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(System.Collections.Generic.KeyNotFoundException))]
+        public void IndexGetFirstTrackOfTypeNotAvailable()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+
+            index.GetFirstTrackOfType(TrackType.Data);
+        }
+
+        [TestMethod]
         public void IndexAudioIndex()
         {
             Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));

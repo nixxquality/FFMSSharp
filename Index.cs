@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.IO;
 
 namespace FFMSsharp
 {
@@ -215,7 +214,7 @@ namespace FFMSsharp
             if (FFMS_Index == IntPtr.Zero)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
-                    throw new IOException(err.Buffer);
+                    throw new System.IO.IOException(err.Buffer);
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new NotSupportedException(err.Buffer);
 
@@ -297,8 +296,8 @@ namespace FFMSsharp
         /// </remarks>
         /// <param name="Type">Track type</param>
         /// <returns>Track number</returns>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Trying to find a type of track that doesn't exist in the media file.</exception>
         public int GetFirstTrackOfType(TrackType Type)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
@@ -308,7 +307,12 @@ namespace FFMSsharp
             int track = NativeMethods.FFMS_GetFirstTrackOfType(FFMS_Index, (int)Type, ref err);
 
             if (track < 0)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
+                    throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
+
+                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
 
             return track;
         }

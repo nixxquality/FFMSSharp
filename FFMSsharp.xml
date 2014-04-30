@@ -951,7 +951,7 @@
             <para>In FFMS2, the equivalent is <c>FFMS_ReadIndex</c>.</para>
             </remarks>
             <param name="IndexFile">Can be an absolute or relative path</param>
-            <exception cref="T:System.IO.IOException">Trying to read an invalid index file.</exception>
+            <exception cref="!:IOException">Trying to read an invalid index file.</exception>
             <exception cref="T:System.NotSupportedException">Trying to read an index file for a <see cref="T:FFMSsharp.Sources">Source</see> that is not available in the ffms2.dll.</exception>
         </member>
         <member name="M:FFMSsharp.Index.Finalize">
@@ -992,8 +992,8 @@
             </remarks>
             <param name="Type">Track type</param>
             <returns>Track number</returns>
-            <exception cref="T:FFMSsharp.FFMSException"/>
             <seealso cref="M:FFMSsharp.Index.GetFirstIndexedTrackOfType(FFMSsharp.TrackType)"/>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Trying to find a type of track that doesn't exist in the media file.</exception>
         </member>
         <member name="M:FFMSsharp.Index.GetFirstIndexedTrackOfType(FFMSsharp.TrackType)">
             <summary>
