@@ -6,7 +6,7 @@ namespace FFMSsharp
 {
     #region Interop
 
-    static partial class Interop
+    static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern int FFMS_GetSourceTypeI(IntPtr Indexer);
@@ -122,12 +122,13 @@ namespace FFMSsharp
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS2_Indexer</c>.</para>
     /// </remarks>
-    public class Indexer
+    public class Indexer : IDisposable
     {
         #region Private properties
 
-        private IntPtr FFMS_Indexer;
-        private bool isIndexing = false;
+        IntPtr FFMS_Indexer;
+        bool isIndexing = false;
+        bool disposed = false;
 
         #endregion
 
@@ -159,10 +160,29 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            FFMS_Indexer = Interop.FFMS_CreateIndexerWithDemuxer(SourceFile, (int)Demuxer, ref err);
+            FFMS_Indexer = NativeMethods.FFMS_CreateIndexerWithDemuxer(SourceFile, (int)Demuxer, ref err);
 
             if (FFMS_Indexer == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(!disposed)
+            {
+                if (FFMS_Indexer != IntPtr.Zero)
+                {
+                    NativeMethods.FFMS_CancelIndexing(FFMS_Indexer);
+                    FFMS_Indexer = IntPtr.Zero;
+                }
+                disposed = true;
+            }
         }
 
         /// <summary>
@@ -173,8 +193,7 @@ namespace FFMSsharp
         /// </remarks>
         ~Indexer()
         {
-            if (FFMS_Indexer != IntPtr.Zero)
-                Interop.FFMS_CancelIndexing(FFMS_Indexer);
+            Dispose(false);
         }
 
         #endregion
@@ -191,7 +210,7 @@ namespace FFMSsharp
         /// <seealso cref="FFMSsharp.Index.GetSourceType"/>
         public Sources GetSourceType()
         {
-            return (Sources)Interop.FFMS_GetSourceTypeI(FFMS_Indexer);
+            return (Sources)NativeMethods.FFMS_GetSourceTypeI(FFMS_Indexer);
         }
 
         /// <summary>
@@ -205,7 +224,7 @@ namespace FFMSsharp
         /// <seealso cref="FFMSsharp.Index.GetNumTracks"/>
         public int GetNumTracks()
         {
-            return Interop.FFMS_GetNumTracksI(FFMS_Indexer);
+            return NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer);
         }
 
         /// <summary>
@@ -222,10 +241,10 @@ namespace FFMSsharp
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public TrackType GetTrackType(int Track)
         {
-            if (Track < 0 || Track > Interop.FFMS_GetNumTracksI(FFMS_Indexer))
+            if (Track < 0 || Track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
                 throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
 
-            return (TrackType)Interop.FFMS_GetTrackTypeI(FFMS_Indexer, Track);
+            return (TrackType)NativeMethods.FFMS_GetTrackTypeI(FFMS_Indexer, Track);
         }
 
         /// <summary>
@@ -239,10 +258,10 @@ namespace FFMSsharp
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public string GetCodecName(int Track)
         {
-            if (Track < 0 || Track > Interop.FFMS_GetNumTracksI(FFMS_Indexer))
+            if (Track < 0 || Track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
                 throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
 
-            return Marshal.PtrToStringAnsi(Interop.FFMS_GetCodecNameI(FFMS_Indexer, Track));
+            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(FFMS_Indexer, Track));
         }
 
         /// <summary>
@@ -254,7 +273,7 @@ namespace FFMSsharp
         /// <returns>The human-readable name ("long name" in FFmpeg terms) of the format</returns>
         public string GetFormatName()
         {
-            return Marshal.PtrToStringAnsi(Interop.FFMS_GetFormatNameI(FFMS_Indexer));
+            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetFormatNameI(FFMS_Indexer));
         }
 
         #endregion
@@ -271,7 +290,7 @@ namespace FFMSsharp
 
             lock(this)
             {
-                index = Interop.FFMS_DoIndexing(FFMS_Indexer, AudioIndexMask, AudioDumpMask, AudioNameCallback, IntPtr.Zero, (int)IndexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
+                index = NativeMethods.FFMS_DoIndexing(FFMS_Indexer, AudioIndexMask, AudioDumpMask, AudioNameCallback, IntPtr.Zero, (int)IndexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
             }
 
             isIndexing = false;
@@ -353,7 +372,7 @@ namespace FFMSsharp
 
         int AudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private)
         {
-            return Interop.FFMS_DefaultAudioFilename(SourceFile, Track, ref AP, FileName, FNSize, Private);
+            return NativeMethods.FFMS_DefaultAudioFilename(SourceFile, Track, ref AP, FileName, FNSize, Private);
         }
 
         /// <summary>
@@ -373,7 +392,7 @@ namespace FFMSsharp
         /// Delegate for the <see cref="OnIndexingCompleted">OnIndexingCompleted</see> event
         /// </summary>
         /// <param name="sender">The indexer</param>
-        public delegate void IndexingCompleted(object sender);
+        public delegate void IndexingCompleted(object sender, EventArgs e);
         /// <summary>
         /// Called when the indexing has finished
         /// </summary>
@@ -389,7 +408,7 @@ namespace FFMSsharp
 
                 if (OnIndexingCompleted != null)
                     if (Current == Total)
-                        OnIndexingCompleted(this);
+                        OnIndexingCompleted(this, new EventArgs());
             }
             return 0;
         }

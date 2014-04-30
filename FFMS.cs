@@ -5,7 +5,7 @@ namespace FFMSsharp
 {
     #region Interop
 
-    static partial class Interop
+    static partial class NativeMethods
     {
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
         public static extern bool SetDllDirectory(string lpPathName);
@@ -173,19 +173,19 @@ namespace FFMSsharp
                 return;
 
             if (DllLocation != null)
-                Interop.SetDllDirectory(DllLocation);
+                NativeMethods.SetDllDirectory(DllLocation);
 
             try
             {
-                Interop.FFMS_Init(0, 0);
+                NativeMethods.FFMS_Init(0, 0);
             }
             catch (BadImageFormatException)
             {
                 throw new Exception("Cannot locate ffms2.dll");
             }
 
-            presentSources = Interop.FFMS_GetPresentSources();
-            enabledSources = Interop.FFMS_GetEnabledSources();
+            presentSources = NativeMethods.FFMS_GetPresentSources();
+            enabledSources = NativeMethods.FFMS_GetEnabledSources();
 
             initialized = true;
         }
@@ -221,7 +221,7 @@ namespace FFMSsharp
         /// <seealso cref="GetVersionString"/>
         public static int GetVersion()
         {
-            return Interop.FFMS_GetVersion();
+            return NativeMethods.FFMS_GetVersion();
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace FFMSsharp
         /// <returns>The result</returns>
         public static AvLogLevel GetLogLevel()
         {
-            return (AvLogLevel)Interop.FFMS_GetLogLevel();
+            return (AvLogLevel)NativeMethods.FFMS_GetLogLevel();
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace FFMSsharp
         /// <param name="Level">The new message level</param>
         public static void SetLogLevel(AvLogLevel Level)
         {
-            Interop.FFMS_SetLogLevel((int)Level);
+            NativeMethods.FFMS_SetLogLevel((int)Level);
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace FFMSsharp
         /// <returns></returns>
         public static int GetPixFmt(string Name)
         {
-            return Interop.FFMS_GetPixFmt(Name);
+            return NativeMethods.FFMS_GetPixFmt(Name);
         }
 
         #endregion

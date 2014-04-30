@@ -17,7 +17,7 @@ namespace FFMSsharp
         public double LastTime;
     }
 
-    static partial class Interop
+    static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern IntPtr FFMS_GetAudioProperties(IntPtr A);
@@ -331,7 +331,7 @@ namespace FFMSsharp
         internal AudioSource(IntPtr AudioSource)
         {
             FFMS_AudioSource = AudioSource;
-            IntPtr propPtr = Interop.FFMS_GetAudioProperties(AudioSource);
+            IntPtr propPtr = NativeMethods.FFMS_GetAudioProperties(AudioSource);
             AP = (FFMS_AudioProperties)Marshal.PtrToStructure(propPtr, typeof(FFMS_AudioProperties));
         }
 
@@ -343,7 +343,7 @@ namespace FFMSsharp
         /// </remarks>
         ~AudioSource()
         {
-            Interop.FFMS_DestroyAudioSource(FFMS_AudioSource);
+            NativeMethods.FFMS_DestroyAudioSource(FFMS_AudioSource);
         }
 
         #endregion
@@ -382,7 +382,7 @@ namespace FFMSsharp
 
             lock (this)
             {
-                if (Interop.FFMS_GetAudio(FFMS_AudioSource, buffer, Start, Count, ref err) != 0)
+                if (NativeMethods.FFMS_GetAudio(FFMS_AudioSource, buffer, Start, Count, ref err) != 0)
                     throw ErrorHandling.ExceptionFromErrorInfo(err);
             }
 
@@ -406,7 +406,7 @@ namespace FFMSsharp
         {
             IntPtr track = IntPtr.Zero;
 
-            track = Interop.FFMS_GetTrackFromAudio(FFMS_AudioSource);
+            track = NativeMethods.FFMS_GetTrackFromAudio(FFMS_AudioSource);
 
             return new FFMSsharp.Track(track);
         }

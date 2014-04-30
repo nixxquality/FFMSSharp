@@ -26,7 +26,7 @@ namespace FFMSsharp
         public double LastTime;
     }
 
-    static partial class Interop
+    static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern IntPtr FFMS_GetVideoProperties(IntPtr V);
@@ -289,7 +289,7 @@ namespace FFMSsharp
         internal VideoSource(IntPtr VideoSource)
         {
             FFMS_VideoSource = VideoSource;
-            IntPtr propPtr = Interop.FFMS_GetVideoProperties(VideoSource);
+            IntPtr propPtr = NativeMethods.FFMS_GetVideoProperties(VideoSource);
             VP = (FFMS_VideoProperties)Marshal.PtrToStructure(propPtr, typeof(FFMS_VideoProperties));
         }
 
@@ -301,7 +301,7 @@ namespace FFMSsharp
         /// </remarks>
         ~VideoSource()
         {
-            Interop.FFMS_DestroyVideoSource(FFMS_VideoSource);
+            NativeMethods.FFMS_DestroyVideoSource(FFMS_VideoSource);
         }
 
         #endregion
@@ -348,7 +348,7 @@ namespace FFMSsharp
             }
             targetFormats[TargetFormats.Count] = -1;
 
-            if (Interop.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormats, Width, Height, (int)Resizer, ref err) != 0)
+            if (NativeMethods.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormats, Width, Height, (int)Resizer, ref err) != 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
@@ -363,7 +363,7 @@ namespace FFMSsharp
         /// </param>
         public void ResetOutputFormat()
         {
-            Interop.FFMS_ResetOutputFormatV(FFMS_VideoSource);
+            NativeMethods.FFMS_ResetOutputFormatV(FFMS_VideoSource);
         }
 
         /// <summary>
@@ -405,7 +405,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (Interop.FFMS_SetInputFormatV(FFMS_VideoSource, (int)ColorSpace, (int)ColorRange, PixelFormat, ref err) != 0)
+            if (NativeMethods.FFMS_SetInputFormatV(FFMS_VideoSource, (int)ColorSpace, (int)ColorRange, PixelFormat, ref err) != 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
@@ -419,7 +419,7 @@ namespace FFMSsharp
         /// <seealso cref="SetInputFormat(int, ColorSpaces, ColorRanges)"/>
         public void ResetInputFormat()
         {
-            Interop.FFMS_ResetInputFormatV(FFMS_VideoSource);
+            NativeMethods.FFMS_ResetInputFormatV(FFMS_VideoSource);
         }
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace FFMSsharp
             IntPtr framePtr = IntPtr.Zero;
             lock (this)
             {
-                framePtr = Interop.FFMS_GetFrame(FFMS_VideoSource, Frame, ref err);
+                framePtr = NativeMethods.FFMS_GetFrame(FFMS_VideoSource, Frame, ref err);
             }
 
             if (framePtr == IntPtr.Zero)
@@ -483,7 +483,7 @@ namespace FFMSsharp
             IntPtr framePtr = IntPtr.Zero;
             lock (this)
             {
-                 framePtr = Interop.FFMS_GetFrameByTime(FFMS_VideoSource, Time, ref err);
+                 framePtr = NativeMethods.FFMS_GetFrameByTime(FFMS_VideoSource, Time, ref err);
             }
 
             if (framePtr == IntPtr.Zero)
@@ -505,7 +505,7 @@ namespace FFMSsharp
         {
             IntPtr track = IntPtr.Zero;
 
-            track = Interop.FFMS_GetTrackFromVideo(FFMS_VideoSource);
+            track = NativeMethods.FFMS_GetTrackFromVideo(FFMS_VideoSource);
 
             return new FFMSsharp.Track(track);
         }

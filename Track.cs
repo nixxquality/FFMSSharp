@@ -11,7 +11,7 @@ namespace FFMSsharp
         public long Den;
     }
 
-    static partial class Interop
+    static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern IntPtr FFMS_GetTimeBase(IntPtr T);
@@ -147,9 +147,9 @@ namespace FFMSsharp
         internal Track(IntPtr Track)
         {
             FFMS_Track = Track;
-            IntPtr propPtr = Interop.FFMS_GetTimeBase(Track);
+            IntPtr propPtr = NativeMethods.FFMS_GetTimeBase(Track);
             TrackTimeBase = (FFMS_TrackTimeBase)Marshal.PtrToStructure(propPtr, typeof(FFMS_TrackTimeBase));
-            TrackType = (TrackType)Interop.FFMS_GetTrackType(FFMS_Track);
+            TrackType = (TrackType)NativeMethods.FFMS_GetTrackType(FFMS_Track);
         }
 
         #endregion
@@ -167,7 +167,7 @@ namespace FFMSsharp
         /// <returns>Number of frames</returns>
         public int GetNumFrames()
         {
-            return Interop.FFMS_GetNumFrames(FFMS_Track);
+            return NativeMethods.FFMS_GetNumFrames(FFMS_Track);
         }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (Interop.FFMS_WriteTimecodes(FFMS_Track, TimecodeFile, ref err) != 0)
+            if (NativeMethods.FFMS_WriteTimecodes(FFMS_Track, TimecodeFile, ref err) != 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
@@ -208,7 +208,7 @@ namespace FFMSsharp
             if (TrackType != TrackType.Video)
                 throw new Exception("You can only use this function on video tracks.");
 
-            IntPtr FrameInfoPtr = Interop.FFMS_GetFrameInfo(FFMS_Track, Frame);
+            IntPtr FrameInfoPtr = NativeMethods.FFMS_GetFrameInfo(FFMS_Track, Frame);
 
             return new FrameInfo((FFMS_FrameInfo)Marshal.PtrToStructure(FrameInfoPtr, typeof(FFMS_FrameInfo)));
         }

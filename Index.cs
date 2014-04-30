@@ -6,7 +6,7 @@ namespace FFMSsharp
 {
     #region Interop
 
-    static partial class Interop
+    static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern IntPtr FFMS_ReadIndex(string IndexFile, ref FFMS_ErrorInfo ErrorInfo);
@@ -187,9 +187,10 @@ namespace FFMSsharp
     /// <para>In FFMS2, the equivalent is <c>FFMS_Index</c>.</para>
     /// <para>To get an Index for a media file you haven't indexed yet, use the <see cref="Indexer">Indexer</see> class.</para>
     /// </remarks>
-    public class Index
+    public class Index : IDisposable
     {
-        private IntPtr FFMS_Index;
+        IntPtr FFMS_Index;
+        bool disposed = false;
 
         #region Constructor and destructor
 
@@ -207,7 +208,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            FFMS_Index = Interop.FFMS_ReadIndex(IndexFile, ref err);
+            FFMS_Index = NativeMethods.FFMS_ReadIndex(IndexFile, ref err);
 
             if (FFMS_Index == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -218,6 +219,25 @@ namespace FFMSsharp
             FFMS_Index = Index;
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (FFMS_Index != IntPtr.Zero)
+                {
+                    NativeMethods.FFMS_DestroyIndex(FFMS_Index);
+                    FFMS_Index = IntPtr.Zero;
+                }
+                disposed = true;
+            }
+        }
+
         /// <summary>
         /// Index destruction
         /// </summary>
@@ -226,8 +246,7 @@ namespace FFMSsharp
         /// </remarks>
         ~Index()
         {
-            if (FFMS_Index != IntPtr.Zero)
-                Interop.FFMS_DestroyIndex(FFMS_Index);
+            Dispose(false);
         }
 
         #endregion
@@ -244,7 +263,7 @@ namespace FFMSsharp
         /// <seealso cref="FFMSsharp.Indexer.GetSourceType"/>
         public Sources GetSourceType()
         {
-            return (Sources)Interop.FFMS_GetSourceType(FFMS_Index);
+            return (Sources)NativeMethods.FFMS_GetSourceType(FFMS_Index);
         }
 
         /// <summary>
@@ -258,7 +277,7 @@ namespace FFMSsharp
         /// <seealso cref="FFMSsharp.Indexer.Index(List&lt;int&gt;, FFMSsharp.IndexErrorHandling)"/>
         public IndexErrorHandling GetErrorHandling()
         {
-            return (IndexErrorHandling)Interop.FFMS_GetErrorHandling(FFMS_Index);
+            return (IndexErrorHandling)NativeMethods.FFMS_GetErrorHandling(FFMS_Index);
         }
 
         /// <summary>
@@ -277,7 +296,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            int track = Interop.FFMS_GetFirstTrackOfType(FFMS_Index, (int)Type, ref err);
+            int track = NativeMethods.FFMS_GetFirstTrackOfType(FFMS_Index, (int)Type, ref err);
 
             if (track < 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -302,7 +321,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            int track = Interop.FFMS_GetFirstIndexedTrackOfType(FFMS_Index, (int)Type, ref err);
+            int track = NativeMethods.FFMS_GetFirstIndexedTrackOfType(FFMS_Index, (int)Type, ref err);
 
             if (track < 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -319,7 +338,7 @@ namespace FFMSsharp
         /// <returns>Total number of tracks</returns>
         public int GetNumTracks()
         {
-            return Interop.FFMS_GetNumTracks(FFMS_Index);
+            return NativeMethods.FFMS_GetNumTracks(FFMS_Index);
         }
 
         /// <summary>
@@ -336,7 +355,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (Interop.FFMS_WriteIndex(IndexFile, FFMS_Index, ref err) != 0)
+            if (NativeMethods.FFMS_WriteIndex(IndexFile, FFMS_Index, ref err) != 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
@@ -358,7 +377,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (Interop.FFMS_IndexBelongsToFile(FFMS_Index, SourceFile, ref err) != 0)
+            if (NativeMethods.FFMS_IndexBelongsToFile(FFMS_Index, SourceFile, ref err) != 0)
             {
                 if (RaiseException)
                     throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -400,7 +419,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            videoSource = Interop.FFMS_CreateVideoSource(SourceFile, Track, FFMS_Index, Threads, (int)SeekMode, ref err);
+            videoSource = NativeMethods.FFMS_CreateVideoSource(SourceFile, Track, FFMS_Index, Threads, (int)SeekMode, ref err);
 
             if (videoSource == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -430,7 +449,7 @@ namespace FFMSsharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            audioSource = Interop.FFMS_CreateAudioSource(SourceFile, Track, FFMS_Index, (int)DelayMode, ref err);
+            audioSource = NativeMethods.FFMS_CreateAudioSource(SourceFile, Track, FFMS_Index, (int)DelayMode, ref err);
 
             if (audioSource == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -457,10 +476,10 @@ namespace FFMSsharp
         {
             IntPtr track = IntPtr.Zero;
 
-            if (Track < 0 || Track > Interop.FFMS_GetNumTracks(FFMS_Index))
+            if (Track < 0 || Track > NativeMethods.FFMS_GetNumTracks(FFMS_Index))
                 throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
 
-            track = Interop.FFMS_GetTrackFromIndex(FFMS_Index, Track);
+            track = NativeMethods.FFMS_GetTrackFromIndex(FFMS_Index, Track);
 
             return new FFMSsharp.Track(track);
         }
