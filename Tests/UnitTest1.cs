@@ -107,6 +107,13 @@ namespace Tests
             
             Assert.IsTrue(index.BelongsToFile("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv"));
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(IOException))]
+        public void ReadIndexFileNotFound()
+        {
+            Index index = new Index("this file doesn't exist.avi");
+        }
         
         [TestMethod]
         [ExpectedException(typeof(FFMSFileMismatchException))]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace FFMSsharp
 {
@@ -211,7 +212,14 @@ namespace FFMSsharp
             FFMS_Index = NativeMethods.FFMS_ReadIndex(IndexFile, ref err);
 
             if (FFMS_Index == IntPtr.Zero)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                    throw new IOException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
+                    throw new NotSupportedException(err.Buffer);
+
+                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: '{0}'. Please report this issue on FFMSsharp's GitHub.", err.Buffer));
+            }
         }
 
         internal Index(IntPtr Index)
