@@ -1005,8 +1005,8 @@
             </remarks>
             <param name="Type">Track type</param>
             <returns>Track number</returns>
-            <exception cref="T:FFMSsharp.FFMSException"/>
             <seealso cref="M:FFMSsharp.Index.GetFirstTrackOfType(FFMSsharp.TrackType)"/>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Trying to find a type of track that doesn't exist in the media file.</exception>
         </member>
         <member name="M:FFMSsharp.Index.GetNumTracks">
             <summary>
