@@ -1027,7 +1027,7 @@
             <param name="IndexFile">Can be an absolute or relative path; it will be truncated and overwritten if it already exists</param>
             <exception cref="T:FFMSsharp.FFMSException"/>
         </member>
-        <member name="M:FFMSsharp.Index.BelongsToFile(System.String,System.Boolean)">
+        <member name="M:FFMSsharp.Index.BelongsToFile(System.String)">
             <summary>
             Check if the index belongs to a specific file
             </summary>
@@ -1037,9 +1037,7 @@
             <para>Useful to determine if the index object you just created by <see cref="M:FFMSsharp.Index.#ctor(System.String)">loading an index file from disk</see> is actually relevant to your interests, since the only two ways to pair up index files with source files are a) trust the user blindly, or b) comparing the filenames; neither is very reliable.</para>
             </remarks>
             <param name="SourceFile">File to check against</param>
-            <param name="RaiseException">Raise exception on failure</param>
             <returns>True or false depending on the result</returns>
-            <exception cref="T:FFMSsharp.FFMSException"/>
         </member>
         <member name="M:FFMSsharp.Index.VideoSource(System.String,System.Int32,System.Int32,FFMSsharp.SeekMode)">
             <summary>

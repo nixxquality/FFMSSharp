@@ -377,10 +377,8 @@ namespace FFMSsharp
         /// <para>Useful to determine if the index object you just created by <see cref="FFMSsharp.Index.Index(string)">loading an index file from disk</see> is actually relevant to your interests, since the only two ways to pair up index files with source files are a) trust the user blindly, or b) comparing the filenames; neither is very reliable.</para>
         /// </remarks>
         /// <param name="SourceFile">File to check against</param>
-        /// <param name="RaiseException">Raise exception on failure</param>
         /// <returns>True or false depending on the result</returns>
-        /// <exception cref="FFMSException"/>
-        public bool BelongsToFile(string SourceFile, bool RaiseException = false)
+        public bool BelongsToFile(string SourceFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
@@ -388,10 +386,10 @@ namespace FFMSsharp
 
             if (NativeMethods.FFMS_IndexBelongsToFile(FFMS_Index, SourceFile, ref err) != 0)
             {
-                if (RaiseException)
-                    throw ErrorHandling.ExceptionFromErrorInfo(err);
-                else
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     return false;
+
+                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: '{0}'. Please report this issue on FFMSsharp's GitHub.", err.Buffer));
             }
 
             return true;

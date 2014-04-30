@@ -116,15 +116,14 @@ namespace Tests
         }
         
         [TestMethod]
-        [ExpectedException(typeof(FFMSFileMismatchException))]
         public void IndexBelongsToFile()
         {
             Indexer indexer = new Indexer("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv");
-            Index index = indexer.Index();
-            index.WriteIndex("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.ffindex");
+            indexer.Index().WriteIndex("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.ffindex");
 
             Index indexFromFile = new Index("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.ffindex");
-            indexFromFile.BelongsToFile("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", true);
+            Assert.IsTrue(indexFromFile.BelongsToFile("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv"));
+            Assert.IsFalse(indexFromFile.BelongsToFile("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv"));
         }
 
         [TestMethod]
