@@ -951,7 +951,7 @@
             <para>In FFMS2, the equivalent is <c>FFMS_ReadIndex</c>.</para>
             </remarks>
             <param name="IndexFile">Can be an absolute or relative path</param>
-            <exception cref="!:IOException">Trying to read an invalid index file.</exception>
+            <exception cref="T:System.IO.IOException">Trying to read an invalid index file.</exception>
             <exception cref="T:System.NotSupportedException">Trying to read an index file for a <see cref="T:FFMSsharp.Sources">Source</see> that is not available in the ffms2.dll.</exception>
         </member>
         <member name="M:FFMSsharp.Index.Finalize">
