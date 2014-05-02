@@ -190,7 +190,12 @@ namespace FFMSsharp
             FFMS_Indexer = NativeMethods.FFMS_CreateIndexerWithDemuxer(sourceFile, (int)demuxer, ref err);
 
             if (FFMS_Indexer == IntPtr.Zero)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                    throw new System.IO.FileLoadException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
         }
 
         /// <summary>

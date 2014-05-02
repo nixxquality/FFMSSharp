@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Runtime.InteropServices;
 
 [assembly: CLSCompliant(false)]
@@ -195,15 +194,15 @@ namespace FFMSsharp
 
                 if (bump != 0)
                 {
-                    return string.Format(CultureInfo.CurrentCulture, "{0}.{1}.{2}.{3}", major, minor, micro, bump);
+                    return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}.{1}.{2}.{3}", major, minor, micro, bump);
                 }
                 else if (micro != 0)
                 {
-                    return string.Format(CultureInfo.CurrentCulture, "{0}.{1}.{2}", major, minor, micro);
+                    return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}.{1}.{2}", major, minor, micro);
                 }
                 else
                 {
-                    return string.Format(CultureInfo.CurrentCulture, "{0}.{1}", major, minor);
+                    return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}.{1}", major, minor);
                 }
             }
         }
