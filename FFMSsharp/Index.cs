@@ -382,7 +382,7 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_WriteIndex</c>.</para>
         /// </remarks>
         /// <param name="indexFile">Can be an absolute or relative path; it will be truncated and overwritten if it already exists</param>
-        /// <exception cref="FFMSException"/>
+        /// <exception cref="ApplicationException">Failure to initialize zlib</exception>
         public void WriteIndex(string indexFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
@@ -390,7 +390,12 @@ namespace FFMSsharp
             err.Buffer = new String((char)0, 1024);
 
             if (NativeMethods.FFMS_WriteIndex(indexFile, FFMS_Index, ref err) != 0)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                    throw new ApplicationException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
         }
 
         /// <summary>

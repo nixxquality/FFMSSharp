@@ -1004,7 +1004,7 @@
             <para>In FFMS2, the equivalent is <c>FFMS_WriteIndex</c>.</para>
             </remarks>
             <param name="indexFile">Can be an absolute or relative path; it will be truncated and overwritten if it already exists</param>
-            <exception cref="T:FFMSsharp.FFMSException"/>
+            <exception cref="T:System.ApplicationException">Failure to initialize zlib</exception>
         </member>
         <member name="M:FFMSsharp.Index.BelongsToFile(System.String)">
             <summary>
