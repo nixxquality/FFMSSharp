@@ -470,7 +470,6 @@ namespace FFMSsharp
         /// <para>Frame numbering starts from zero, and hence the first frame is number 0 (not 1) and the last frame is number <see cref="NumberOfFrames">NumFrames</see> - 1.</para>
         /// </param>
         /// <returns>The generated <see cref="Frame">Frame object</see>.</returns>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="GetFrame(double)"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
         public Frame GetFrame(int frame)
@@ -489,7 +488,9 @@ namespace FFMSsharp
             }
 
             if (framePtr == IntPtr.Zero)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
 
             return new Frame(framePtr);
         }
@@ -505,7 +506,6 @@ namespace FFMSsharp
         /// </remarks>
         /// <param name="time">Timestamp</param>
         /// <returns>The generated <see cref="Frame">Frame object</see>.</returns>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="GetFrame(int)"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
         public Frame GetFrame(double time)
@@ -524,7 +524,9 @@ namespace FFMSsharp
             }
 
             if (framePtr == IntPtr.Zero)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
 
             return new Frame(framePtr);
         }
