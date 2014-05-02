@@ -1182,6 +1182,7 @@
             </remarks>
             <param name="sourceFile">The media file</param>
             <param name="demuxer">What demuxer to use</param>
+            <exception cref="T:System.IO.FileLoadException">Failure to load the media file</exception>
         </member>
         <member name="M:FFMSsharp.Indexer.Dispose">
             <summary>
@@ -1240,7 +1241,9 @@
             <returns>The generated <see cref="T:FFMSsharp.Index">Index</see> object</returns>
             <event cref="E:FFMSsharp.Indexer.UpdateIndexProgress">Called to give you an update on indexing progress</event>
             <event cref="E:FFMSsharp.Indexer.OnIndexingCompleted">Called when the indexing has finished</event>
-            <exception cref="T:FFMSsharp.FFMSException"/>
+            <exception cref="T:System.NotSupportedException">Attempting to index a codec not supported by the indexer</exception>
+            <exception cref="T:System.IO.InvalidDataException">Failure to index a file that should be supported</exception>
+            <exception cref="T:System.OperationCanceledException">Canceling the indexing process</exception>
         </member>
         <member name="P:FFMSsharp.Indexer.IsIndexing">
             <summary>

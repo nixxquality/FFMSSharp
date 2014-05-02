@@ -181,6 +181,7 @@ namespace FFMSsharp
         /// </remarks>
         /// <param name="sourceFile">The media file</param>
         /// <param name="demuxer">What demuxer to use</param>
+        /// <exception cref="System.IO.FileLoadException">Failure to load the media file</exception>
         public Indexer(string sourceFile, Source demuxer = Source.Default)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
@@ -297,7 +298,18 @@ namespace FFMSsharp
             FFMS_Indexer = IntPtr.Zero;
 
             if (index == IntPtr.Zero)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED)
+                    throw new NotSupportedException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_DECODING)
+                    throw new System.IO.InvalidDataException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CANCELLED && err.SubType == FFMS_Errors.FFMS_ERROR_USER)
+                    throw new OperationCanceledException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEXING && err.SubType == FFMS_Errors.FFMS_ERROR_PARSER)
+                    throw new System.IO.InvalidDataException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
 
             return new FFMSsharp.Index(index);
         }
@@ -314,7 +326,9 @@ namespace FFMSsharp
         /// <returns>The generated <see cref="FFMSsharp.Index">Index</see> object</returns>
         /// <event cref="UpdateIndexProgress">Called to give you an update on indexing progress</event>
         /// <event cref="OnIndexingCompleted">Called when the indexing has finished</event>
-        /// <exception cref="FFMSException"/>
+        /// <exception cref="NotSupportedException">Attempting to index a codec not supported by the indexer</exception>
+        /// <exception cref="System.IO.InvalidDataException">Failure to index a file that should be supported</exception>
+        /// <exception cref="OperationCanceledException">Canceling the indexing process</exception>
         public Index Index(IEnumerable<int> audioIndex = null, IndexErrorHandling indexErrorHandling = IndexErrorHandling.Abort)
         {
             int indexMask = -1;
