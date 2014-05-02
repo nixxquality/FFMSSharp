@@ -445,10 +445,11 @@ namespace FFMSsharp
         /// <para>Has no effect on Matroska files, where the equivalent of Normal is always used.</para>
         /// <para>LinearNoRw may come in handy if you want to open images.</para></param>
         /// <returns>The generated <see cref="FFMSsharp.VideoSource">VideoSource object</see></returns>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="AudioSource"/>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
+        /// <exception cref="ArgumentException">Trying to make a VideoSource out of an invalid track</exception>
+        /// <exception cref="InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         public VideoSource VideoSource(string sourceFile, int track, int threads = 1, SeekMode seekMode = SeekMode.Normal)
         {
             IntPtr videoSource = IntPtr.Zero;
@@ -459,7 +460,14 @@ namespace FFMSsharp
             videoSource = NativeMethods.FFMS_CreateVideoSource(sourceFile, track, FFMS_Index, threads, (int)seekMode, ref err);
 
             if (videoSource == IntPtr.Zero)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                    throw new ArgumentException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
+                    throw new InvalidOperationException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
 
             return new FFMSsharp.VideoSource(videoSource);
         }

@@ -1035,10 +1035,11 @@
             <para>Has no effect on Matroska files, where the equivalent of Normal is always used.</para>
             <para>LinearNoRw may come in handy if you want to open images.</para></param>
             <returns>The generated <see cref="T:FFMSsharp.VideoSource">VideoSource object</see></returns>
-            <exception cref="T:FFMSsharp.FFMSException"/>
             <seealso cref="M:FFMSsharp.Index.AudioSource(System.String,System.Int32,FFMSsharp.AudioDelayMode)"/>
             <seealso cref="M:FFMSsharp.Index.GetFirstTrackOfType(FFMSsharp.TrackType)"/>
             <seealso cref="M:FFMSsharp.Index.GetFirstIndexedTrackOfType(FFMSsharp.TrackType)"/>
+            <exception cref="T:System.ArgumentException">Trying to make a VideoSource out of an invalid track</exception>
+            <exception cref="T:System.InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         </member>
         <member name="M:FFMSsharp.Index.AudioSource(System.String,System.Int32,FFMSsharp.AudioDelayMode)">
             <summary>
