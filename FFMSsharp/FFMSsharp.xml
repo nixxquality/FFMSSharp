@@ -1557,6 +1557,7 @@
             </param>
             <seealso cref="M:FFMSsharp.VideoSource.ResetOutputFormat"/>
             <exception cref="T:System.ArgumentOutOfRangeException">Trying to set the desired image resolution to an invalid size like 0, 0.</exception>
+            <exception cref="T:System.ArgumentNullException">Trying to supply a null list of <paramref name="targetFormats"/>.</exception>
             <exception cref="T:System.ArgumentException">Trying to set an invalid output format.</exception>
         </member>
         <member name="M:FFMSsharp.VideoSource.ResetOutputFormat">
@@ -1583,8 +1584,8 @@
             </remarks>
             <param name="colorSpace">The desired input colorspace</param>
             <param name="colorRange">The desired input colorrange</param>
-            <exception cref="T:FFMSsharp.FFMSException"/>
             <seealso cref="M:FFMSsharp.VideoSource.ResetInputFormat"/>
+            <exception cref="T:System.ArgumentException">Trying to set an invalid output format.</exception>
         </member>
         <member name="M:FFMSsharp.VideoSource.SetInputFormat(System.Int32,FFMSsharp.ColorSpace,FFMSsharp.ColorRange)">
             <summary>
@@ -1600,8 +1601,8 @@
             <param name="pixelFormat">The desired input pixel format</param>
             <param name="colorSpace">The desired input colorspace</param>
             <param name="colorRange">The desired input colorrange</param>
-            <exception cref="T:FFMSsharp.FFMSException"/>
             <seealso cref="M:FFMSsharp.VideoSource.ResetInputFormat"/>
+            <exception cref="T:System.ArgumentException">Trying to set an insane input format.</exception>
         </member>
         <member name="M:FFMSsharp.VideoSource.ResetInputFormat">
             <summary>

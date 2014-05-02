@@ -352,6 +352,7 @@ namespace FFMSsharp
         /// </param>
         /// <seealso cref="ResetOutputFormat"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to set the desired image resolution to an invalid size like 0, 0.</exception>
+        /// <exception cref="ArgumentNullException">Trying to supply a null list of <paramref name="targetFormats"/>.</exception>
         /// <exception cref="ArgumentException">Trying to set an invalid output format.</exception>
         public void SetOutputFormat(ICollection<int> targetFormats, int width, int height, Resizer resizer)
         {
@@ -373,6 +374,8 @@ namespace FFMSsharp
             if (NativeMethods.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormatsArray, width, height, (int)resizer, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                    throw new ArgumentException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
                     throw new ArgumentException(err.Buffer);
 
                 throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
@@ -405,8 +408,8 @@ namespace FFMSsharp
         /// </remarks>
         /// <param name="colorSpace">The desired input colorspace</param>
         /// <param name="colorRange">The desired input colorrange</param>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="ResetInputFormat"/>
+        /// <exception cref="ArgumentException">Trying to set an invalid output format.</exception>
         public void SetInputFormat(ColorSpace colorSpace = ColorSpace.Unspecified, ColorRange colorRange = ColorRange.Unspecified)
         {
             SetInputFormat(FFMS2.GetPixelFormat(""), colorSpace, colorRange);
@@ -424,8 +427,8 @@ namespace FFMSsharp
         /// <param name="pixelFormat">The desired input pixel format</param>
         /// <param name="colorSpace">The desired input colorspace</param>
         /// <param name="colorRange">The desired input colorrange</param>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="ResetInputFormat"/>
+        /// <exception cref="ArgumentException">Trying to set an insane input format.</exception>
         public void SetInputFormat(int pixelFormat, ColorSpace colorSpace = ColorSpace.Unspecified, ColorRange colorRange = ColorRange.Unspecified)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
@@ -433,7 +436,14 @@ namespace FFMSsharp
             err.Buffer = new String((char)0, 1024);
 
             if (NativeMethods.FFMS_SetInputFormatV(FFMS_VideoSource, (int)colorSpace, (int)colorRange, pixelFormat, ref err) != 0)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                    throw new ArgumentException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
+                    throw new ArgumentException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
         }
 
         /// <summary>
