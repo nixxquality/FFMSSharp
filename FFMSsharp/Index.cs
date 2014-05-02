@@ -486,10 +486,12 @@ namespace FFMSsharp
         /// <param name="track">Track number of the specific audio track</param>
         /// <param name="delayMode">Controls how audio with a non-zero first PTS is handled; in other words what FFMS does about audio delay.</param>
         /// <returns>The generated <see cref="FFMSsharp.AudioSource">AudioSource object</see></returns>
-        /// <exception cref="FFMSException"/>
         /// <seealso cref="VideoSource"/>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
+        /// <exception cref="System.IO.FileLoadException">Failure to open the <paramref name="sourceFile"/></exception>
+        /// <exception cref="ArgumentException">Trying to make a AudioSource out of an invalid track</exception>
+        /// <exception cref="InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         public AudioSource AudioSource(string sourceFile, int track, AudioDelayMode delayMode = AudioDelayMode.FirstVideoTrack)
         {
             IntPtr audioSource = IntPtr.Zero;
@@ -500,7 +502,16 @@ namespace FFMSsharp
             audioSource = NativeMethods.FFMS_CreateAudioSource(sourceFile, track, FFMS_Index, (int)delayMode, ref err);
 
             if (audioSource == IntPtr.Zero)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                    throw new System.IO.FileLoadException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                    throw new ArgumentException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
+                    throw new InvalidOperationException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
 
             return new FFMSsharp.AudioSource(audioSource);
         }

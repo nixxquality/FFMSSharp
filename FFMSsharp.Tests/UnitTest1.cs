@@ -313,6 +313,30 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(FileLoadException))]
+        public void AudioSourceFileLoadException()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            AudioSource source = index.AudioSource("this file doesn't exist.avi", 1);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void AudioSourceArgumentException()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 10);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void AudioSourceInvalidOperationException()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            AudioSource source = index.AudioSource("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv", 1);
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void AudioSourceGetAudioStartOutOfRange()
         {
