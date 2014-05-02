@@ -389,9 +389,9 @@ namespace FFMSsharp
         /// <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="NumberOfSamples"/> minus 1.</para>
         /// </param>
         /// <returns>The raw audio data</returns>
-        /// <exception cref="FFMSException"/>
         /// <threadsafety instance="false"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access audio samples that are out of range of the stream.</exception>
+        /// <exception cref="NotSupportedException">Trying to start half-way into an unseekable audio stream.</exception>
         public byte[] GetAudio(long start, long count)
         {
             if (start < 0 || start > NumberOfSamples - 1)
@@ -405,10 +405,18 @@ namespace FFMSsharp
 
             byte[] buffer = new byte[(AP.BitsPerSample / 8) * AP.Channels * count];
 
+            int success;
             lock (this)
             {
-                if (NativeMethods.FFMS_GetAudio(FFMS_AudioSource, buffer, start, count, ref err) != 0)
-                    throw ErrorHandling.ExceptionFromErrorInfo(err);
+                success = NativeMethods.FFMS_GetAudio(FFMS_AudioSource, buffer, start, count, ref err);
+            }
+
+            if (success != 0)
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SEEKING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
+                    throw new NotSupportedException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return buffer;
