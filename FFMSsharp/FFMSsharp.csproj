@@ -25,6 +25,7 @@
     </DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +37,7 @@
     <DocumentationFile>FFMSsharp.xml</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -46,6 +48,7 @@
     <Compile Include="ErrorHandling.cs" />
     <Compile Include="Frame.cs" />
     <Compile Include="FrameInfo.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Index.cs" />
     <Compile Include="Indexer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

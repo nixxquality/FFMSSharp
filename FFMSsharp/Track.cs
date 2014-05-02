@@ -93,7 +93,7 @@ namespace FFMSsharp
     /// </summary>
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS_Track</c>.</para>
-    /// <para>See <see cref="Index.GetTrack">Index.GetTrack</see>, <see cref="VideoSource.GetTrack">VideoSource.GetTrack</see> or <see cref="AudioSource.GetTrack">AudioSource.GetTrack</see> on how to create a <see cref="Track">Track object</see>.</para>
+    /// <para>See <see cref="Index.GetTrack">Index.GetTrack</see>, <see cref="VideoSource.Track">VideoSource.Track</see> or <see cref="AudioSource.Track">AudioSource.Track</see> on how to create a <see cref="Track">Track object</see>.</para>
     /// </remarks>
     public class Track
     {
@@ -101,7 +101,6 @@ namespace FFMSsharp
 
         IntPtr FFMS_Track;
         FFMS_TrackTimeBase TrackTimeBase;
-        TrackType TrackType;
 
         #endregion
 
@@ -132,13 +131,24 @@ namespace FFMSsharp
         { get { return TrackTimeBase.Den; } }
 
         /// <summary>
-        /// The <see cref="TrackType"/> of the track
+        /// The type of the track
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackType</c>.</para>
         /// </remarks>
-        public TrackType Type
-        { get { return TrackType; } }
+        public TrackType TrackType
+        { get { return (TrackType)NativeMethods.FFMS_GetTrackType(FFMS_Track); } }
+
+        /// <summary>
+        /// The number of frames in the track
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetNumFrames</c>.</para>
+        /// <para>For a video track this is the number of video frames, for an audio track it's the number of packets.</para>
+        /// <para>A return value of 0 indicates the track has not been indexed.</para>
+        /// </remarks>
+        public int NumberOfFrames
+        { get { return NativeMethods.FFMS_GetNumFrames(FFMS_Track); } }
 
         #endregion
 
@@ -149,26 +159,11 @@ namespace FFMSsharp
             FFMS_Track = Track;
             IntPtr propPtr = NativeMethods.FFMS_GetTimeBase(Track);
             TrackTimeBase = (FFMS_TrackTimeBase)Marshal.PtrToStructure(propPtr, typeof(FFMS_TrackTimeBase));
-            TrackType = (TrackType)NativeMethods.FFMS_GetTrackType(FFMS_Track);
         }
 
         #endregion
 
         #region Methods
-
-        /// <summary>
-        /// The number of frames in the track
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetNumFrames</c>.</para>
-        /// <para>For a video track this is the number of video frames, for an audio track it's the number of packets.</para>
-        /// <para>A return value of 0 indicates the track has not been indexed.</para>
-        /// </remarks>
-        /// <returns>Number of frames</returns>
-        public int GetNumFrames()
-        {
-            return NativeMethods.FFMS_GetNumFrames(FFMS_Track);
-        }
 
         /// <summary>
         /// Writes timecodes for the track to disk
@@ -178,15 +173,15 @@ namespace FFMSsharp
         /// <para>Writes Matroska v2 timecodes for the track to the given file.</para>
         /// <para>Only meaningful for video tracks. </para>
         /// </remarks>
-        /// <param name="TimecodeFile">Can be a relative or absolute path. The file will be truncated and overwritten if it already exists.</param>
+        /// <param name="timecodeFile">Can be a relative or absolute path. The file will be truncated and overwritten if it already exists.</param>
         /// <exception cref="FFMSException"/>
-        public void WriteTimecodes(string TimecodeFile)
+        public void WriteTimecodes(string timecodeFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (NativeMethods.FFMS_WriteTimecodes(FFMS_Track, TimecodeFile, ref err) != 0)
+            if (NativeMethods.FFMS_WriteTimecodes(FFMS_Track, timecodeFile, ref err) != 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
@@ -201,14 +196,14 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetFrameInfo</c>.</para>
         /// <para>Gets information about the given frame (identified by its frame number) from the indexing information in the <see cref="Track">Track object</see> and returns it as a <see cref="FrameInfo">FrameInfo object</see>.</para>
         /// </remarks>
-        /// <param name="Frame">Frame number</param>
+        /// <param name="frame">Frame number</param>
         /// <returns>The generated <see cref="FrameInfo">FrameInfo object</see>.</returns>
-        public FrameInfo GetFrameInfo(int Frame)
+        public FrameInfo GetFrameInfo(int frame)
         {
             if (TrackType != TrackType.Video)
-                throw new Exception("You can only use this function on video tracks.");
+                throw new InvalidOperationException("You can only use this function on video tracks.");
 
-            IntPtr FrameInfoPtr = NativeMethods.FFMS_GetFrameInfo(FFMS_Track, Frame);
+            IntPtr FrameInfoPtr = NativeMethods.FFMS_GetFrameInfo(FFMS_Track, frame);
 
             return new FrameInfo((FFMS_FrameInfo)Marshal.PtrToStructure(FrameInfoPtr, typeof(FFMS_FrameInfo)));
         }

@@ -49,7 +49,7 @@ namespace FFMSsharp
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS_Sources</c>.</para>
     /// </remarks>
-    public enum Sources
+    public enum Source
     {
         /// <summary>
         /// Default
@@ -120,7 +120,7 @@ namespace FFMSsharp
     /// Media file indexer
     /// </summary>
     /// <remarks>
-    /// <para>In FFMS2, the equivalent is <c>FFMS2_Indexer</c>.</para>
+    /// <para>In FFMS2, the equivalent is <c>FFMS_Indexer</c>.</para>
     /// </remarks>
     public class Indexer : IDisposable
     {
@@ -139,6 +139,33 @@ namespace FFMSsharp
         /// </summary>
         public bool IsIndexing
         { get { return isIndexing; } }
+        /// <summary>
+        /// Source module that was used to open the indexer
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetSourceTypeI</c>.</para>
+        /// </remarks>
+        /// <seealso cref="FFMSsharp.Index.Source"/>
+        public Source Source
+        { get { return (Source)NativeMethods.FFMS_GetSourceTypeI(FFMS_Indexer); } }
+        /// <summary>
+        /// The number of tracks
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetNumTrackI</c>.</para>
+        /// <para>Does the same thing as <see cref="FFMSsharp.Index.NumberOfTracks">Index.NumberOfTracks</see> but does not require having the file indexed first.</para>
+        /// </remarks>
+        /// <seealso cref="FFMSsharp.Index.NumberOfTracks"/>
+        public int NumberOfTracks
+        { get { return NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer); } }
+        /// <summary>
+        /// The name of the container format of the media file
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetFormatNameI</c>.</para>
+        /// </remarks>
+        public string FormatName
+        { get { return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetFormatNameI(FFMS_Indexer)); } }
 
         #endregion
 
@@ -152,15 +179,15 @@ namespace FFMSsharp
         /// <para>The chosen demuxer gets used for both indexing and decoding later on. Only force one if you know what you're doing.</para>
         /// <para>Picking a demuxer that doesn't work on your file will not cause automatic fallback on lavf or automatic probing; it'll just cause indexer creation to fail.</para>
         /// </remarks>
-        /// <param name="SourceFile">The media file</param>
-        /// <param name="Demuxer">What demuxer to use</param>
-        public Indexer(string SourceFile, Sources Demuxer = Sources.Default)
+        /// <param name="sourceFile">The media file</param>
+        /// <param name="demuxer">What demuxer to use</param>
+        public Indexer(string sourceFile, Source demuxer = Source.Default)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            FFMS_Indexer = NativeMethods.FFMS_CreateIndexerWithDemuxer(SourceFile, (int)Demuxer, ref err);
+            FFMS_Indexer = NativeMethods.FFMS_CreateIndexerWithDemuxer(sourceFile, (int)demuxer, ref err);
 
             if (FFMS_Indexer == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -208,79 +235,40 @@ namespace FFMSsharp
         #region Methods
 
         /// <summary>
-        /// Get which source module was used to open the indexer
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetSourceTypeI</c>.</para>
-        /// </remarks>
-        /// <returns>Source module</returns>
-        /// <seealso cref="FFMSsharp.Index.GetSourceType"/>
-        public Sources GetSourceType()
-        {
-            return (Sources)NativeMethods.FFMS_GetSourceTypeI(FFMS_Indexer);
-        }
-
-        /// <summary>
-        /// Get the number of tracks
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetNumTrackI</c>.</para>
-        /// <para>Does the same thing as <see cref="FFMSsharp.Index.GetNumTracks">Index.GetNumTracks</see> but does not require having the file indexed first.</para>
-        /// </remarks>
-        /// <returns>Total number of tracks</returns>
-        /// <seealso cref="FFMSsharp.Index.GetNumTracks"/>
-        public int GetNumTracks()
-        {
-            return NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer);
-        }
-
-        /// <summary>
         /// Get the track type of a specific track
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackTypeI</c>.</para>
-        /// <para>Does the same thing as <see cref="FFMSsharp.Track.Type">Track.Type</see> but does not require having the file indexed first.</para>
-        /// <para>If you have indexed the file, use <see cref="FFMSsharp.Track.Type">Track.Type</see> instead since the <c>FFMS_Indexer</c> object is destroyed when the index is created.</para>
+        /// <para>Does the same thing as <see cref="FFMSsharp.Track.TrackType">Track.Type</see> but does not require having the file indexed first.</para>
+        /// <para>If you have indexed the file, use <see cref="FFMSsharp.Track.TrackType">Track.Type</see> instead since the <c>FFMS_Indexer</c> object is destroyed when the index is created.</para>
         /// </remarks>
-        /// <param name="Track">Track number</param>
+        /// <param name="track">Track number</param>
         /// <returns>Track type</returns>
-        /// <seealso cref="FFMSsharp.Track.Type"/>
+        /// <seealso cref="FFMSsharp.Track.TrackType"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
-        public TrackType GetTrackType(int Track)
+        public TrackType GetTrackType(int track)
         {
-            if (Track < 0 || Track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
-                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
+                throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
 
-            return (TrackType)NativeMethods.FFMS_GetTrackTypeI(FFMS_Indexer, Track);
+            return (TrackType)NativeMethods.FFMS_GetTrackTypeI(FFMS_Indexer, track);
         }
 
         /// <summary>
         /// Get the name of the codec used for a specific track
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS2_GetCodecNameI</c>.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetCodecNameI</c>.</para>
         /// </remarks>
-        /// <param name="Track">Track number</param>
+        /// <param name="track">Track number</param>
         /// <returns>The human-readable name ("long name" in FFmpeg terms) of the codec</returns>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
-        public string GetCodecName(int Track)
+        public string GetCodecName(int track)
         {
-            if (Track < 0 || Track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
-                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
+                throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
 
-            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(FFMS_Indexer, Track));
-        }
-
-        /// <summary>
-        /// Get the name of the container format of the media file
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS2_GetFormatNameI</c>.</para>
-        /// </remarks>
-        /// <returns>The human-readable name ("long name" in FFmpeg terms) of the format</returns>
-        public string GetFormatName()
-        {
-            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetFormatNameI(FFMS_Indexer));
+            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(FFMS_Indexer, track));
         }
 
         #endregion
@@ -313,40 +301,29 @@ namespace FFMSsharp
         /// Index the media file
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS2_DoIndexing</c>.</para>
-        /// <para>This overload will index all <see cref="TrackType.Audio">Audio</see> tracks.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_DoIndexing</c>.</para>
+        /// <para>By default, you will index all <see cref="TrackType.Audio">Audio</see> tracks.</para>
         /// </remarks>
-        /// <param name="IndexErrorHandling">Control behavior when a decoding error is encountered</param>
+        /// <param name="audioIndex">A list of specific <see cref="TrackType.Audio">Audio</see> tracks to index</param>
+        /// <param name="indexErrorHandling">Control behavior when a decoding error is encountered</param>
         /// <returns>The generated <see cref="FFMSsharp.Index">Index</see> object</returns>
         /// <event cref="UpdateIndexProgress">Called to give you an update on indexing progress</event>
         /// <event cref="OnIndexingCompleted">Called when the indexing has finished</event>
         /// <exception cref="FFMSException"/>
-        public Index Index(IndexErrorHandling IndexErrorHandling = IndexErrorHandling.Abort)
+        public Index Index(IEnumerable<int> audioIndex = null, IndexErrorHandling indexErrorHandling = IndexErrorHandling.Abort)
         {
-            return Index(-1, 0, IndexErrorHandling);
-        }
+            int indexMask = -1;
 
-        /// <summary>
-        /// Index the media file
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS2_DoIndexing</c>.</para>
-        /// </remarks>
-        /// <param name="AudioIndex">A list of specific <see cref="TrackType.Audio">Audio</see> tracks to index</param>
-        /// <param name="IndexErrorHandling">Control behavior when a decoding error is encountered</param>
-        /// <returns>The generated <see cref="FFMSsharp.Index">Index</see> object.</returns>
-        /// <event cref="UpdateIndexProgress">Called to give you an update on indexing progress</event>
-        /// <event cref="OnIndexingCompleted">Called when the indexing has finished</event>
-        /// <exception cref="FFMSException"/>
-        public Index Index(List<int> AudioIndex, IndexErrorHandling IndexErrorHandling = IndexErrorHandling.Abort)
-        {
-            int IndexMask = 0;
-            foreach (int Track in AudioIndex)
+            if (audioIndex != null)
             {
-                IndexMask = IndexMask | (1 << Track);
+                indexMask = 0;
+                foreach (int Track in audioIndex)
+                {
+                    indexMask = indexMask | (1 << Track);
+                }
             }
 
-            return Index(IndexMask, 0, IndexErrorHandling);
+            return Index(indexMask, 0, indexErrorHandling);
         }
 
         /*
@@ -383,29 +360,15 @@ namespace FFMSsharp
         }
 
         /// <summary>
-        /// Delegate for the <see cref="UpdateIndexProgress">UpdateIndexProgress</see> event
-        /// </summary>
-        /// <param name="sender">The indexer</param>
-        /// <param name="e">Progress</param>
-        public delegate void IndexingProgressChange(object sender, IndexingProgressChangeEventArgs e);
-        /// <summary>
         /// Called to give you an update on indexing progress
         /// </summary>
-        /// <seealso cref="IndexingProgressChange"/>
         /// <seealso cref="IndexingProgressChangeEventArgs"/>
-        public event IndexingProgressChange UpdateIndexProgress;
+        public event EventHandler<IndexingProgressChangeEventArgs> UpdateIndexProgress;
 
-        /// <summary>
-        /// Delegate for the <see cref="OnIndexingCompleted">OnIndexingCompleted</see> event
-        /// </summary>
-        /// <param name="sender">The indexer</param>
-        /// <param name="e">Nothing!</param>
-        public delegate void IndexingCompleted(object sender, EventArgs e);
         /// <summary>
         /// Called when the indexing has finished
         /// </summary>
-        /// <seealso cref="IndexingCompleted"/>
-        public event IndexingCompleted OnIndexingCompleted;
+        public event EventHandler OnIndexingCompleted;
 
         int IndexingCallback(long Current, long Total, IntPtr ICPrivate)
         {

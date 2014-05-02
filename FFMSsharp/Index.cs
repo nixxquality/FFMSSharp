@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace FFMSsharp
@@ -150,7 +151,7 @@ namespace FFMSsharp
     /// <para>In FFMS2, the equivalent is <c>FFMS_AudioDelayModes</c>.</para>
     /// <para>In other words: what FFMS does about audio delay.</para>
     /// </remarks>
-    public enum AudioDelayModes
+    public enum AudioDelayMode
     {
         /// <summary>
         /// No adjustment is made
@@ -192,6 +193,54 @@ namespace FFMSsharp
         IntPtr FFMS_Index;
         bool disposed = false;
 
+        #region Accessors
+
+        /// <summary>
+        /// Source module that was used in creating the index
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetSourceType</c>.</para>
+        /// </remarks>
+        /// <seealso cref="FFMSsharp.Indexer.Source"/>
+        public Source Source
+        {
+            get
+            {
+                return (Source)NativeMethods.FFMS_GetSourceType(FFMS_Index);
+            }
+        }
+
+        /// <summary>
+        /// Error handling that method was used in creating of the index
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetErrorHandling</c>.</para>
+        /// </remarks>
+        /// <seealso cref="FFMSsharp.Indexer.Index(IEnumerable&lt;int&gt;, FFMSsharp.IndexErrorHandling)"/>
+        public IndexErrorHandling IndexErrorHandling
+        {
+            get
+            {
+                return (IndexErrorHandling)NativeMethods.FFMS_GetErrorHandling(FFMS_Index);
+            }
+        }
+
+        /// <summary>
+        /// Total number of tracks in the index
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetNumTracks</c>.</para>
+        /// </remarks>
+        public int NumberOfTracks
+        {
+            get
+            {
+                return NativeMethods.FFMS_GetNumTracks(FFMS_Index);
+            }
+        }
+
+        #endregion
+
         #region Constructor and destructor
 
         /// <summary>
@@ -200,16 +249,16 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_ReadIndex</c>.</para>
         /// </remarks>
-        /// <param name="IndexFile">Can be an absolute or relative path</param>
+        /// <param name="indexFile">Can be an absolute or relative path</param>
         /// <exception cref="System.IO.IOException">Trying to read an invalid index file.</exception>
-        /// <exception cref="NotSupportedException">Trying to read an index file for a <see cref="Sources">Source</see> that is not available in the ffms2.dll.</exception>
-        public Index(string IndexFile)
+        /// <exception cref="NotSupportedException">Trying to read an index file for a <see cref="Source">Source</see> that is not available in the ffms2.dll.</exception>
+        public Index(string indexFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            FFMS_Index = NativeMethods.FFMS_ReadIndex(IndexFile, ref err);
+            FFMS_Index = NativeMethods.FFMS_ReadIndex(indexFile, ref err);
 
             if (FFMS_Index == IntPtr.Zero)
             {
@@ -218,7 +267,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new NotSupportedException(err.Buffer);
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -269,56 +318,29 @@ namespace FFMSsharp
         #region Methods
 
         /// <summary>
-        /// Get which source module was used in creating the index
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetSourceType</c>.</para>
-        /// </remarks>
-        /// <returns>Source module</returns>
-        /// <seealso cref="FFMSsharp.Indexer.GetSourceType"/>
-        public Sources GetSourceType()
-        {
-            return (Sources)NativeMethods.FFMS_GetSourceType(FFMS_Index);
-        }
-
-        /// <summary>
-        /// Get which error handling method was used in creating of the index
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetErrorHandling</c>.</para>
-        /// </remarks>
-        /// <returns>Error handling method</returns>
-        /// <seealso cref="FFMSsharp.Indexer.Index(FFMSsharp.IndexErrorHandling)"/>
-        /// <seealso cref="FFMSsharp.Indexer.Index(List&lt;int&gt;, FFMSsharp.IndexErrorHandling)"/>
-        public IndexErrorHandling GetErrorHandling()
-        {
-            return (IndexErrorHandling)NativeMethods.FFMS_GetErrorHandling(FFMS_Index);
-        }
-
-        /// <summary>
         /// Get the track number of the first track of a specific type
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetFirstTrackOfType</c>.</para>
         /// </remarks>
-        /// <param name="Type">Track type</param>
+        /// <param name="type">Track type</param>
         /// <returns>Track number</returns>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Trying to find a type of track that doesn't exist in the media file.</exception>
-        public int GetFirstTrackOfType(TrackType Type)
+        public int GetFirstTrackOfType(TrackType type)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            int track = NativeMethods.FFMS_GetFirstTrackOfType(FFMS_Index, (int)Type, ref err);
+            int track = NativeMethods.FFMS_GetFirstTrackOfType(FFMS_Index, (int)type, ref err);
 
             if (track < 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return track;
@@ -331,39 +353,27 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetFirstIndexedTrackOfType</c>.</para>
         /// <para>Does the exact same thing as <see cref="GetFirstTrackOfType">GetFirstTrackOfType</see> but ignores tracks that have not been indexed.</para>
         /// </remarks>
-        /// <param name="Type">Track type</param>
+        /// <param name="type">Track type</param>
         /// <returns>Track number</returns>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Trying to find a type of track that doesn't exist in the media file.</exception>
-        public int GetFirstIndexedTrackOfType(TrackType Type)
+        public int GetFirstIndexedTrackOfType(TrackType type)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            int track = NativeMethods.FFMS_GetFirstIndexedTrackOfType(FFMS_Index, (int)Type, ref err);
+            int track = NativeMethods.FFMS_GetFirstIndexedTrackOfType(FFMS_Index, (int)type, ref err);
 
             if (track < 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return track;
-        }
-
-        /// <summary>
-        /// Get the total number of tracks in the index
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetNumTracks</c>.</para>
-        /// </remarks>
-        /// <returns>Total number of tracks</returns>
-        public int GetNumTracks()
-        {
-            return NativeMethods.FFMS_GetNumTracks(FFMS_Index);
         }
 
         /// <summary>
@@ -372,15 +382,15 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_WriteIndex</c>.</para>
         /// </remarks>
-        /// <param name="IndexFile">Can be an absolute or relative path; it will be truncated and overwritten if it already exists</param>
+        /// <param name="indexFile">Can be an absolute or relative path; it will be truncated and overwritten if it already exists</param>
         /// <exception cref="FFMSException"/>
-        public void WriteIndex(string IndexFile)
+        public void WriteIndex(string indexFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (NativeMethods.FFMS_WriteIndex(IndexFile, FFMS_Index, ref err) != 0)
+            if (NativeMethods.FFMS_WriteIndex(indexFile, FFMS_Index, ref err) != 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
@@ -389,23 +399,23 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_IndexBelongsToFile</c>.</para>
-        /// <para>Makes a heuristic (but very reliable) guess about whether the index is of the <paramref name="SourceFile"/> or not.</para>
+        /// <para>Makes a heuristic (but very reliable) guess about whether the index is of the <paramref name="sourceFile"/> or not.</para>
         /// <para>Useful to determine if the index object you just created by <see cref="FFMSsharp.Index.Index(string)">loading an index file from disk</see> is actually relevant to your interests, since the only two ways to pair up index files with source files are a) trust the user blindly, or b) comparing the filenames; neither is very reliable.</para>
         /// </remarks>
-        /// <param name="SourceFile">File to check against</param>
+        /// <param name="sourceFile">File to check against</param>
         /// <returns>True or false depending on the result</returns>
-        public bool BelongsToFile(string SourceFile)
+        public bool BelongsToFile(string sourceFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (NativeMethods.FFMS_IndexBelongsToFile(FFMS_Index, SourceFile, ref err) != 0)
+            if (NativeMethods.FFMS_IndexBelongsToFile(FFMS_Index, sourceFile, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     return false;
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return true;
@@ -422,12 +432,12 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_CreateVideoSource</c>.</para>
         /// <para>Note that the index object is copied into the <see cref="FFMSsharp.VideoSource">VideoSource object</see> upon its creation, so once you've created the video source you can generally destroy the index object immediately, since all info you can retrieve from it is also retrievable from the <see cref="FFMSsharp.VideoSource">VideoSource object</see>.</para>
         /// </remarks>
-        /// <param name="SourceFile">The media file. Can be an absolute or relative path</param>
-        /// <param name="Track">Track number of the specific video track</param>
-        /// <param name="Threads">Number of threads used for decoding
+        /// <param name="sourceFile">The media file. Can be an absolute or relative path</param>
+        /// <param name="track">Track number of the specific video track</param>
+        /// <param name="threads">Number of threads used for decoding
         /// <para>Anything less than 1 will use threads equal to the number of CPU cores.</para>
         /// <para>Values &gt;1 have no effect if FFmpeg was not compiled with threading support.</para></param>
-        /// <param name="SeekMode">Controls how seeking (random access) is handled and hence affects frame accuracy
+        /// <param name="seekMode">Controls how seeking (random access) is handled and hence affects frame accuracy
         /// <para>Has no effect on Matroska files, where the equivalent of Normal is always used.</para>
         /// <para>LinearNoRw may come in handy if you want to open images.</para></param>
         /// <returns>The generated <see cref="FFMSsharp.VideoSource">VideoSource object</see></returns>
@@ -435,14 +445,14 @@ namespace FFMSsharp
         /// <seealso cref="AudioSource"/>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
-        public VideoSource VideoSource(string SourceFile, int Track, int Threads = 1, SeekMode SeekMode = SeekMode.Normal)
+        public VideoSource VideoSource(string sourceFile, int track, int threads = 1, SeekMode seekMode = SeekMode.Normal)
         {
             IntPtr videoSource = IntPtr.Zero;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            videoSource = NativeMethods.FFMS_CreateVideoSource(SourceFile, Track, FFMS_Index, Threads, (int)SeekMode, ref err);
+            videoSource = NativeMethods.FFMS_CreateVideoSource(sourceFile, track, FFMS_Index, threads, (int)seekMode, ref err);
 
             if (videoSource == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -457,22 +467,22 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_CreateAudioSource</c>.</para>
         /// <para>Note that the index object is copied into the <see cref="FFMSsharp.AudioSource">AudioSource object</see> upon its creation, so once you've created the video source you can generally destroy the index object immediately, since all info you can retrieve from it is also retrievable from the <see cref="FFMSsharp.AudioSource">AudioSource object</see>.</para>
         /// </remarks>
-        /// <param name="SourceFile">The media file. Can be an absolute or relative path</param>
-        /// <param name="Track">Track number of the specific audio track</param>
-        /// <param name="DelayMode">Controls how audio with a non-zero first PTS is handled; in other words what FFMS does about audio delay.</param>
+        /// <param name="sourceFile">The media file. Can be an absolute or relative path</param>
+        /// <param name="track">Track number of the specific audio track</param>
+        /// <param name="delayMode">Controls how audio with a non-zero first PTS is handled; in other words what FFMS does about audio delay.</param>
         /// <returns>The generated <see cref="FFMSsharp.AudioSource">AudioSource object</see></returns>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="VideoSource"/>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
-        public AudioSource AudioSource(string SourceFile, int Track, AudioDelayModes DelayMode = AudioDelayModes.FirstVideoTrack)
+        public AudioSource AudioSource(string sourceFile, int track, AudioDelayMode delayMode = AudioDelayMode.FirstVideoTrack)
         {
             IntPtr audioSource = IntPtr.Zero;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            audioSource = NativeMethods.FFMS_CreateAudioSource(SourceFile, Track, FFMS_Index, (int)DelayMode, ref err);
+            audioSource = NativeMethods.FFMS_CreateAudioSource(sourceFile, track, FFMS_Index, (int)delayMode, ref err);
 
             if (audioSource == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
@@ -486,25 +496,25 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromIndex</c>.</para>
         /// <para>Use this function if you don't want to (or cannot) open the track with <see cref="VideoSource">VideoSource</see> or <see cref="AudioSource">AudioSource</see> first.</para>
-        /// <para>If you already have a <see cref="FFMSsharp.VideoSource">VideoSource object</see> or <see cref="FFMSsharp.AudioSource">AudioSource object</see> it's safer to use <see cref="FFMSsharp.VideoSource.GetTrack">GetTrack</see>/<see cref="FFMSsharp.AudioSource.GetTrack">GetTrack</see> instead.</para>
+        /// <para>If you already have a <see cref="FFMSsharp.VideoSource">VideoSource object</see> or <see cref="FFMSsharp.AudioSource">AudioSource object</see> it's safer to use the Track property of <see cref="FFMSsharp.VideoSource.Track">VideoSource</see> and <see cref="FFMSsharp.AudioSource.Track">AudioSource</see> instead.</para>
         /// <para>The returned <see cref="FFMSsharp.Track">Track object</see> is only valid until its parent <see cref="Index">Index object</see> is destroyed.</para>
-        /// <para>Requesting indexing information for a track that has not been indexed will not cause an error, it will just return an empty FFMS_Track (check for >0 frames using <see cref="FFMSsharp.Track.GetNumFrames">GetNumFrames</see> to see if the returned object actually contains indexing information).</para>
+        /// <para>Requesting indexing information for a track that has not been indexed will not cause an error, it will just return an empty FFMS_Track (check for >0 frames using <see cref="FFMSsharp.Track.NumberOfFrames">GetNumFrames</see> to see if the returned object actually contains indexing information).</para>
         /// </remarks>
-        /// <param name="Track">Track number</param>
+        /// <param name="track">Track number</param>
         /// <returns>The generated <see cref="FFMSsharp.Track">Track object</see></returns>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
-        public Track GetTrack(int Track)
+        public Track GetTrack(int track)
         {
-            IntPtr track = IntPtr.Zero;
+            IntPtr trackPtr = IntPtr.Zero;
 
-            if (Track < 0 || Track > NativeMethods.FFMS_GetNumTracks(FFMS_Index))
-                throw new ArgumentOutOfRangeException("Track", "That track doesn't exist.");
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracks(FFMS_Index))
+                throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
 
-            track = NativeMethods.FFMS_GetTrackFromIndex(FFMS_Index, Track);
+            trackPtr = NativeMethods.FFMS_GetTrackFromIndex(FFMS_Index, track);
 
-            return new FFMSsharp.Track(track);
+            return new FFMSsharp.Track(trackPtr);
         }
 
         #endregion

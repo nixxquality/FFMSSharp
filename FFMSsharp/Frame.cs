@@ -39,7 +39,7 @@ namespace FFMSsharp
     /// <para>The numerical constants are the same as in the MPEG-2 specification.</para>
     /// <para>Some of these are specified or aliased in a number of places.</para>
     /// </remarks>
-    public enum ColorSpaces
+    public enum ColorSpace
     {
         /// <summary>
         /// RGB
@@ -102,7 +102,7 @@ namespace FFMSsharp
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS_ColorRanges</c>.</para>
     /// </remarks>
-    public enum ColorRanges
+    public enum ColorRange
     {
         /// <summary>
         /// Unspecified
@@ -217,10 +217,10 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->RepeatPict</c>.</para>
-        /// <para>The frame shall be displayed for 1+<see cref="RepeatPict"/> time units, where the time units are expressed in the special RFF timebase available in <see cref="VideoSource.RFFNumerator"/> and <see cref="VideoSource.RFFDenominator"/>.</para>
+        /// <para>The frame shall be displayed for 1+<see cref="RepeatPicture"/> time units, where the time units are expressed in the special RFF timebase available in <see cref="VideoSource.RFFNumerator"/> and <see cref="VideoSource.RFFDenominator"/>.</para>
         /// <para>Note that if you actually end up using this, you need to ignore the usual timestamps (calculated via the <see cref="Track.TimeBaseNumerator"/>/<see cref="Track.TimeBaseDenominator"/> and the <see cref="FrameInfo.PTS"/>) since they are fundamentally incompatible with RFF flags.</para>
         /// </remarks>
-        public int RepeatPict
+        public int RepeatPicture
         { get { return FFMS_Frame.RepeatPict; } }
         /// <summary>
         /// Is this an interlaced frame?
@@ -253,18 +253,33 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->ColorSpace</c>.</para>
         /// </remarks>
-        /// <seealso cref="ColorSpaces"/>
-        public ColorSpaces ColorSpace
-        { get { return (ColorSpaces)FFMS_Frame.ColorSpace; } }
+        /// <seealso cref="ColorSpace"/>
+        public ColorSpace ColorSpace
+        { get { return (ColorSpace)FFMS_Frame.ColorSpace; } }
         /// <summary>
         /// Identifies the luma range of the frame
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->ColorRange</c>.</para>
         /// </remarks>
-        /// <seealso cref="ColorRanges"/>
-        public ColorRanges ColorRange
-        { get { return (ColorRanges)FFMS_Frame.ColorRange; } }
+        /// <seealso cref="ColorRange"/>
+        public ColorRange ColorRange
+        { get { return (ColorRange)FFMS_Frame.ColorRange; } }
+        /// <summary>
+        /// Turn the pixel data into a <see cref="Bitmap">Bitmap</see>
+        /// </summary>
+        /// <remarks>
+        /// <para>This only works if you've <see cref="VideoSource.SetOutputFormat">set the PixelFormat</see> to "bgra".</para>
+        /// </remarks>
+        public Bitmap Bitmap
+        {
+            get
+            {
+                if (FFMS_Frame.ConvertedPixelFormat != FFMS2.GetPixelFormat("bgra"))
+                    throw new InvalidOperationException("You can only use this function with the brga output format");
+                return new Bitmap(FFMS_Frame.ScaledWidth, FFMS_Frame.ScaledHeight, FFMS_Frame.ScaledWidth * 4, System.Drawing.Imaging.PixelFormat.Format32bppArgb, FFMS_Frame.Data[0]);
+            }
+        }
 
         #endregion
 
@@ -273,24 +288,6 @@ namespace FFMSsharp
         internal Frame(IntPtr Frame)
         {
             FFMS_Frame = (FFMS_Frame)Marshal.PtrToStructure(Frame, typeof(FFMS_Frame));
-        }
-
-        #endregion
-
-        #region Object creation
-
-        /// <summary>
-        /// Turn the pixel data into a <see cref="Bitmap">Bitmap</see>
-        /// </summary>
-        /// <remarks>
-        /// <para>This function only works if you've <see cref="VideoSource.SetOutputFormat">set the PixelFormat</see> to "bgra".</para>
-        /// </remarks>
-        /// <returns>The generated <see cref="Bitmap">Bitmap object</see></returns>
-        public Bitmap GetBitmap()
-        {
-            if (FFMS_Frame.ConvertedPixelFormat != FFMS2.GetPixFmt("bgra"))
-                throw new Exception("You can only use this function with the brga output format");
-            return new Bitmap(FFMS_Frame.ScaledWidth, FFMS_Frame.ScaledHeight, FFMS_Frame.ScaledWidth * 4, System.Drawing.Imaging.PixelFormat.Format32bppArgb, FFMS_Frame.Data[0]);
         }
 
         #endregion

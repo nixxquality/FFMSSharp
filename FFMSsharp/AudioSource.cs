@@ -87,7 +87,8 @@ namespace FFMSsharp
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS_AudioChannel</c>.</para>
     /// </remarks>
-    public enum AudioChannel
+    [FlagsAttribute]
+    public enum AudioChannels
     {
         /// <summary>
         /// Front Left
@@ -291,7 +292,7 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_AudioProperties->ChannelLayout</c>.</para>
-        /// <para>Constructed by binary OR'ing the relevant integers from <see cref="AudioChannel"/> together, which means that if the audio has the channel AudioChannel.Example, the operation (ChannelOrder &amp; AudioChannel.Example) will evaluate to true.</para>
+        /// <para>Constructed by binary OR'ing the relevant integers from <see cref="ChannelLayout"/> together, which means that if the audio has the channel AudioChannel.Example, the operation (ChannelOrder &amp; AudioChannel.Example) will evaluate to true.</para>
         /// </remarks>
         public long ChannelLayout
         { get { return AP.ChannelLayout; } }
@@ -301,7 +302,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_AudioProperties->NumSamples</c>.</para>
         /// </remarks>
-        public long NumSamples
+        public long NumberOfSamples
         { get { return AP.NumSamples; } }
         /// <summary>
         /// The first timestamp of the stream, in seconds
@@ -323,6 +324,30 @@ namespace FFMSsharp
         /// <seealso cref="FirstTime"/>
         public double LastTime
         { get { return AP.LastTime; } }
+
+        FFMSsharp.Track track;
+        /// <summary>
+        /// Retrieves track info
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromAudio</c>.</para>
+        /// <para>It's generally safer to use this instead of <see cref="Index.GetTrack">Index.GetTrack</see>, since unlike that function it cannot cause access violations if you specified an nonexistent track number, return a <see cref="Track">Track object</see> that doesn't actually contain any indexing information, or return an object that ceases to be valid when the index is destroyed.</para>
+        /// <para>Note that the <see cref="Track">Track object</see> is only valid until its parent <see cref="AudioSource">AudioSource object</see> is destroyed.</para>
+        /// </remarks>
+        public Track Track
+        {
+            get
+            {
+                if (track == null)
+                {
+                    IntPtr trackPtr = IntPtr.Zero;
+                    trackPtr = NativeMethods.FFMS_GetTrackFromAudio(FFMS_AudioSource);
+                    track = new FFMSsharp.Track(trackPtr);
+                }
+                return track;
+            }
+        }
+        
 
         #endregion
 
@@ -355,34 +380,34 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetAudio</c>.</para>
-        /// <para>The output is <paramref name="Count"/> samples long, starting from <paramref name="Start"/> (inclusive).</para>
+        /// <para>The output is <paramref name="count"/> samples long, starting from <paramref name="start"/> (inclusive).</para>
         /// </remarks>
-        /// <param name="Start">The first sample to decode
-        /// <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="NumSamples"/> minus 1.</para>
+        /// <param name="start">The first sample to decode
+        /// <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="NumberOfSamples"/> minus 1.</para>
         /// </param>
-        /// <param name="Count">The amount of samples to decode
-        /// <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="NumSamples"/> minus 1.</para>
+        /// <param name="count">The amount of samples to decode
+        /// <para>Sample numbers start from zero and hence the last sample in the stream is number <see cref="NumberOfSamples"/> minus 1.</para>
         /// </param>
         /// <returns>The raw audio data</returns>
         /// <exception cref="FFMSException"/>
         /// <threadsafety instance="false"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access audio samples that are out of range of the stream.</exception>
-        public byte[] GetAudio(long Start, long Count)
+        public byte[] GetAudio(long start, long count)
         {
-            if (Start < 0 || Start > NumSamples - 1)
-                throw new ArgumentOutOfRangeException("Start", "Invalid start sample.");
-            if (Count < 0 || Start + Count > NumSamples - 1)
-                throw new ArgumentOutOfRangeException("Count", "Invalid sample count.");
+            if (start < 0 || start > NumberOfSamples - 1)
+                throw new ArgumentOutOfRangeException("start", "Invalid start sample.");
+            if (count < 0 || start + count > NumberOfSamples - 1)
+                throw new ArgumentOutOfRangeException("count", "Invalid sample count.");
 
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            byte[] buffer = new byte[(AP.BitsPerSample / 8) * AP.Channels * Count];
+            byte[] buffer = new byte[(AP.BitsPerSample / 8) * AP.Channels * count];
 
             lock (this)
             {
-                if (NativeMethods.FFMS_GetAudio(FFMS_AudioSource, buffer, Start, Count, ref err) != 0)
+                if (NativeMethods.FFMS_GetAudio(FFMS_AudioSource, buffer, start, count, ref err) != 0)
                     throw ErrorHandling.ExceptionFromErrorInfo(err);
             }
 
@@ -392,24 +417,6 @@ namespace FFMSsharp
         #endregion
 
         #region Object creation
-
-        /// <summary>
-        /// Retrieves track info
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromAudio</c>.</para>
-        /// <para>It's generally safer to use this function instead of <see cref="Index.GetTrack">Index.GetTrack</see>, since unlike that function it cannot cause access violations if you specified an nonexistent track number, return a <see cref="Track">Track object</see> that doesn't actually contain any indexing information, or return an object that ceases to be valid when the index is destroyed.</para>
-        /// <para>Note that the returned <see cref="Track">Track object</see> is only valid until its parent <see cref="AudioSource">AudioSource object</see> is destroyed. </para>
-        /// </remarks>
-        /// <returns>The generated <see cref="Track">Track object</see></returns>
-        public Track GetTrack()
-        {
-            IntPtr track = IntPtr.Zero;
-
-            track = NativeMethods.FFMS_GetTrackFromAudio(FFMS_AudioSource);
-
-            return new FFMSsharp.Track(track);
-        }
         
         #endregion
     }

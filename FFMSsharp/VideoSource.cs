@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace FFMSsharp
@@ -66,7 +67,7 @@ namespace FFMSsharp
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS_Resizers</c>.</para>
     /// </remarks>
-    public enum Resizers
+    public enum Resizer
     {
         /// <summary>
         /// Bilinear (Fast)
@@ -200,7 +201,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->RFFNumerator</c>.</para>
         /// </remarks>
-        /// <seealso cref="Frame.RepeatPict"/>
+        /// <seealso cref="Frame.RepeatPicture"/>
         /// <seealso cref="RFFDenominator"/>
         public int RFFNumerator
         { get { return VP.RFFNumerator; } }
@@ -210,7 +211,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->RFFDenominator</c>.</para>
         /// </remarks>
-        /// <seealso cref="Frame.RepeatPict"/>
+        /// <seealso cref="Frame.RepeatPicture"/>
         /// <seealso cref="RFFNumerator"/>
         public int RFFDenominator
         { get { return VP.RFFDenominator; } }
@@ -220,7 +221,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->NumFrames</c>.</para>
         /// </remarks>
-        public int NumFrames
+        public int NumberOfFrames
         { get { return VP.NumFrames; } }
         /// <summary>
         /// Sample aspect ratio of the video frames
@@ -282,6 +283,29 @@ namespace FFMSsharp
         public double LastTime
         { get { return VP.LastTime; } }
 
+        FFMSsharp.Track track;
+        /// <summary>
+        /// Retrieves track info
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromVideo</c>.</para>
+        /// <para>It's generally safer to use this instead of <see cref="Index.GetTrack">Index.GetTrack</see>, since unlike that function it cannot cause access violations if you specified an nonexistent track number, return a <see cref="Track">Track object</see> that doesn't actually contain any indexing information, or return an object that ceases to be valid when the index is destroyed.</para>
+        /// <para>Note that the <see cref="Track">Track object</see> is only valid until its parent <see cref="VideoSource">AudioSource object</see> is destroyed.</para>
+        /// </remarks>
+        public Track Track
+        {
+            get
+            {
+                if (track == null)
+                {
+                    IntPtr trackPtr = IntPtr.Zero;
+                    trackPtr = NativeMethods.FFMS_GetTrackFromVideo(FFMS_VideoSource);
+                    track = new FFMSsharp.Track(trackPtr);
+                }
+                return track;
+            }
+        }
+
         #endregion
 
         #region Constructor and destructor
@@ -312,48 +336,47 @@ namespace FFMSsharp
         /// Sets the output format for video frames
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS2_SetOutputFormatV2</c>.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_SetOutputFormatV2</c>.</para>
         /// </remarks>
-        /// <param name="TargetFormats">The desired output colorspace(s)
+        /// <param name="targetFormats">The desired output colorspace(s)
         /// <para>The destination that gives the least lossy conversion from the source colorspace will automatically be selected, ON A FRAME BASIS.</para>
-        /// <para>To get the integer constant representing a given colorspace, see <see cref="FFMS2.GetPixFmt">GetPixFmt</see>.</para>
+        /// <para>To get the integer constant representing a given colorspace, see <see cref="FFMS2.GetPixelFormat">GetPixFmt</see>.</para>
         /// </param>
-        /// <param name="Width">The desired image width, in pixels
+        /// <param name="width">The desired image width, in pixels
         /// <para>If you do not want to resize just pass the input dimensions.</para>
         /// </param>
-        /// <param name="Height">The desired image height, in pixels
+        /// <param name="height">The desired image height, in pixels
         /// <para>If you do not want to resize just pass the input dimensions.</para>
         /// </param>
-        /// <param name="Resizer">The desired image resizing algorithm.
+        /// <param name="resizer">The desired image resizing algorithm.
         /// <para>You must choose one even if you're not actually rescaling the image, because the video may change resolution mid-stream and then you will be using a resizer whether you want it or not (you will only know that the resolution changed after you actually decoded a frame with a new resolution), and it may also get used for rescaling subsampled chroma planes.</para>
         /// </param>
         /// <seealso cref="ResetOutputFormat"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to set the desired image resolution to an invalid size like 0, 0.</exception>
         /// <exception cref="ArgumentException">Trying to set an invalid output format.</exception>
-        public void SetOutputFormat(List<int> TargetFormats, int Width, int Height, Resizers Resizer)
+        public void SetOutputFormat(ICollection<int> targetFormats, int width, int height, Resizer resizer)
         {
-            if (Width <= 0)
-                throw new ArgumentOutOfRangeException("Width", "Invalid image width.");
-            if (Height <= 0)
-                throw new ArgumentOutOfRangeException("Height", "Invalid image height.");
+            if (width <= 0)
+                throw new ArgumentOutOfRangeException("width", "Invalid image width.");
+            if (height <= 0)
+                throw new ArgumentOutOfRangeException("height", "Invalid image height.");
+            if (targetFormats == null)
+                throw new ArgumentNullException("targetFormats");
 
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            int[] targetFormats = new int[TargetFormats.Count + 1];
-            for (int i = 0; i < TargetFormats.Count; i++)
-            {
-                targetFormats[i] = TargetFormats[i];
-            }
-            targetFormats[TargetFormats.Count] = -1;
+            int[] targetFormatsArray = new int[targetFormats.Count + 1];
+            targetFormats.CopyTo(targetFormatsArray, 0);
+            targetFormatsArray[targetFormats.Count] = -1;
 
-            if (NativeMethods.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormats, Width, Height, (int)Resizer, ref err) != 0)
+            if (NativeMethods.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormatsArray, width, height, (int)resizer, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
                     throw new ArgumentException(err.Buffer);
 
-                throw new NotImplementedException(string.Format("Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -375,42 +398,42 @@ namespace FFMSsharp
         /// Override the source format for video frames
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS2_SetInputFormatV</c>.</para>
-        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat(ColorSpaces, ColorRanges)">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_SetInputFormatV</c>.</para>
+        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat(ColorSpace, ColorRange)">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
         /// <para>This is intended primarily for compatibility with programs which use the wrong YUV colorspace when converting to or from RGB, but can also be useful for files which have incorrect colorspace flags.</para>
         /// <para>Values passed are not checked for sanity; if you wish you may tell FFMS2 to pretend that a RGB files is actually YUV using this function, but doing so is unlikely to have useful results.</para>
         /// <para>This function only has an effect if the output format is also set with <see cref="SetOutputFormat">SetOutputFormat</see>.</para>
         /// </remarks>
-        /// <param name="ColorSpace">The desired input colorspace</param>
-        /// <param name="ColorRange">The desired input colorrange</param>
+        /// <param name="colorSpace">The desired input colorspace</param>
+        /// <param name="colorRange">The desired input colorrange</param>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="ResetInputFormat"/>
-        public void SetInputFormat(ColorSpaces ColorSpace = ColorSpaces.Unspecified, ColorRanges ColorRange = ColorRanges.Unspecified)
+        public void SetInputFormat(ColorSpace colorSpace = ColorSpace.Unspecified, ColorRange colorRange = ColorRange.Unspecified)
         {
-            SetInputFormat(FFMS2.GetPixFmt(""), ColorSpace, ColorRange);
+            SetInputFormat(FFMS2.GetPixelFormat(""), colorSpace, colorRange);
         }
         /// <summary>
         /// Override the source format for video frames
         /// </summary>
         /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS2_SetInputFormatV</c>.</para>
-        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat(int, ColorSpaces, ColorRanges)">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_SetInputFormatV</c>.</para>
+        /// <para>Override the source colorspace passed to SWScale for conversions and resizing for all further calls to <see cref="GetFrame(int)">GetFrame</see>, until the next time you call <see cref="SetInputFormat(int, ColorSpace, ColorRange)">SetInputFormat</see> or <see cref="ResetInputFormat">ResetInputFormat</see>.</para>
         /// <para>This is intended primarily for compatibility with programs which use the wrong YUV colorspace when converting to or from RGB, but can also be useful for files which have incorrect colorspace flags.</para>
         /// <para>Values passed are not checked for sanity; if you wish you may tell FFMS2 to pretend that a RGB files is actually YUV using this function, but doing so is unlikely to have useful results.</para>
         /// <para>This function only has an effect if the output format is also set with <see cref="SetOutputFormat">SetOutputFormat</see>.</para>
         /// </remarks>
-        /// <param name="PixelFormat">The desired input pixel format</param>
-        /// <param name="ColorSpace">The desired input colorspace</param>
-        /// <param name="ColorRange">The desired input colorrange</param>
+        /// <param name="pixelFormat">The desired input pixel format</param>
+        /// <param name="colorSpace">The desired input colorspace</param>
+        /// <param name="colorRange">The desired input colorrange</param>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="ResetInputFormat"/>
-        public void SetInputFormat(int PixelFormat, ColorSpaces ColorSpace = ColorSpaces.Unspecified, ColorRanges ColorRange = ColorRanges.Unspecified)
+        public void SetInputFormat(int pixelFormat, ColorSpace colorSpace = ColorSpace.Unspecified, ColorRange colorRange = ColorRange.Unspecified)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (NativeMethods.FFMS_SetInputFormatV(FFMS_VideoSource, (int)ColorSpace, (int)ColorRange, PixelFormat, ref err) != 0)
+            if (NativeMethods.FFMS_SetInputFormatV(FFMS_VideoSource, (int)colorSpace, (int)colorRange, pixelFormat, ref err) != 0)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
         }
 
@@ -420,8 +443,8 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_ResetInputFormatV</c>.</para>
         /// </remarks>
-        /// <seealso cref="SetInputFormat(ColorSpaces, ColorRanges)"/>
-        /// <seealso cref="SetInputFormat(int, ColorSpaces, ColorRanges)"/>
+        /// <seealso cref="SetInputFormat(ColorSpace, ColorRange)"/>
+        /// <seealso cref="SetInputFormat(int, ColorSpace, ColorRange)"/>
         public void ResetInputFormat()
         {
             NativeMethods.FFMS_ResetInputFormatV(FFMS_VideoSource);
@@ -434,17 +457,17 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetFrame</c>.</para>
         /// <para>The returned frame is owned by the given <see cref="VideoSource">VideoSource object</see>, and remains valid until the video source is destroyed, a different frame is requested from the video source, or the video source's input or output format is changed.</para>
         /// </remarks>
-        /// <param name="Frame">The frame number to get
-        /// <para>Frame numbering starts from zero, and hence the first frame is number 0 (not 1) and the last frame is number <see cref="NumFrames">NumFrames</see> - 1.</para>
+        /// <param name="frame">The frame number to get
+        /// <para>Frame numbering starts from zero, and hence the first frame is number 0 (not 1) and the last frame is number <see cref="NumberOfFrames">NumFrames</see> - 1.</para>
         /// </param>
         /// <returns>The generated <see cref="Frame">Frame object</see>.</returns>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="GetFrame(double)"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
-        public Frame GetFrame(int Frame)
+        public Frame GetFrame(int frame)
         {
-            if (Frame < 0 || Frame > NumFrames - 1)
-                throw new ArgumentOutOfRangeException("Frame", "That frame doesn't exist.");
+            if (frame < 0 || frame > NumberOfFrames - 1)
+                throw new ArgumentOutOfRangeException("frame", "That frame doesn't exist.");
 
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
@@ -453,7 +476,7 @@ namespace FFMSsharp
             IntPtr framePtr = IntPtr.Zero;
             lock (this)
             {
-                framePtr = NativeMethods.FFMS_GetFrame(FFMS_VideoSource, Frame, ref err);
+                framePtr = NativeMethods.FFMS_GetFrame(FFMS_VideoSource, frame, ref err);
             }
 
             if (framePtr == IntPtr.Zero)
@@ -471,15 +494,15 @@ namespace FFMSsharp
         /// <para>Does the exact same thing as <see cref="GetFrame(int)">GetFrame</see> except instead of giving it a frame number you give it a timestamp in seconds, and it will retrieve the frame that starts closest to that timestamp.</para>
         /// <para>This function exists for the people who are too lazy to build and traverse a mapping between frame numbers and timestamps themselves.</para>
         /// </remarks>
-        /// <param name="Time">Timestamp</param>
+        /// <param name="time">Timestamp</param>
         /// <returns>The generated <see cref="Frame">Frame object</see>.</returns>
         /// <exception cref="FFMSException"/>
         /// <seealso cref="GetFrame(int)"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Frame that doesn't exist.</exception>
-        public Frame GetFrame(double Time)
+        public Frame GetFrame(double time)
         {
-            if (Time < 0 || Time > LastTime)
-                throw new ArgumentOutOfRangeException("Time", "That frame doesn't exist.");
+            if (time < 0 || time > LastTime)
+                throw new ArgumentOutOfRangeException("time", "That frame doesn't exist.");
 
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
@@ -488,31 +511,13 @@ namespace FFMSsharp
             IntPtr framePtr = IntPtr.Zero;
             lock (this)
             {
-                 framePtr = NativeMethods.FFMS_GetFrameByTime(FFMS_VideoSource, Time, ref err);
+                 framePtr = NativeMethods.FFMS_GetFrameByTime(FFMS_VideoSource, time, ref err);
             }
 
             if (framePtr == IntPtr.Zero)
                 throw ErrorHandling.ExceptionFromErrorInfo(err);
 
             return new Frame(framePtr);
-        }
-
-        /// <summary>
-        /// Retrieves track info
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromVideo</c>.</para>
-        /// <para>It's generally safer to use this function instead of <see cref="Index.GetTrack">Index.GetTrack</see>, since unlike that function it cannot cause access violations if you specified an nonexistent track number, return a <see cref="Track">Track object</see> that doesn't actually contain any indexing information, or return an object that ceases to be valid when the index is destroyed.</para>
-        /// <para>Note that the returned <see cref="Track">Track object</see> is only valid until its parent <see cref="VideoSource">VideoSource object</see> is destroyed. </para>
-        /// </remarks>
-        /// <returns>The generated <see cref="Track">Track object</see></returns>
-        public Track GetTrack()
-        {
-            IntPtr track = IntPtr.Zero;
-
-            track = NativeMethods.FFMS_GetTrackFromVideo(FFMS_VideoSource);
-
-            return new FFMSsharp.Track(track);
         }
 
         #endregion

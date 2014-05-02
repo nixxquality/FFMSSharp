@@ -39,8 +39,8 @@
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_FrameInfo->RepeatPict</c>.</para>
         /// </remarks>
-        /// <seealso cref="Frame.RepeatPict"/>
-        public int RepeatPict
+        /// <seealso cref="Frame.RepeatPicture"/>
+        public int RepeatPicture
         { get { return Info.RepeatPict; } }
         /// <summary>
         /// Is this a keyframe?

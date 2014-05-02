@@ -15,34 +15,34 @@ namespace Tests
         {
             FFMS2.Initialize();
             Assert.IsTrue(FFMS2.Initialized);
-            Console.WriteLine(FFMS2.GetVersionString());
+            Console.WriteLine(FFMS2.VersionString);
         }
 
         [TestMethod]
         public void GetSetLogLevel()
         {
-            FFMS2.SetLogLevel(AvLogLevel.Debug);
-            Assert.AreEqual(AvLogLevel.Debug, FFMS2.GetLogLevel());
-            FFMS2.SetLogLevel(AvLogLevel.Quiet);
-            Assert.AreEqual(AvLogLevel.Quiet, FFMS2.GetLogLevel());
+            FFMS2.LogLevel = AVLogLevel.Debug;
+            Assert.AreEqual(AVLogLevel.Debug, FFMS2.LogLevel);
+            FFMS2.LogLevel = AVLogLevel.Quiet;
+            Assert.AreEqual(AVLogLevel.Quiet, FFMS2.LogLevel);
         }
 
         [TestMethod]
         public void GetPixFmt()
         {
-            Assert.AreNotEqual(-1, FFMS2.GetPixFmt("yuv420p"));
-            Assert.AreEqual(-1, FFMS2.GetPixFmt("none"));
+            Assert.AreNotEqual(-1, FFMS2.GetPixelFormat("yuv420p"));
+            Assert.AreEqual(-1, FFMS2.GetPixelFormat("none"));
         }
 
         [TestMethod]
         public void IndexerMatroska()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
 
-            Assert.AreEqual(5, indexer.GetNumTracks());
+            Assert.AreEqual(5, indexer.NumberOfTracks);
             Assert.AreEqual(FFMSsharp.TrackType.Video, indexer.GetTrackType(0));
-            Assert.AreEqual("matroska", indexer.GetFormatName());
+            Assert.AreEqual("matroska", indexer.FormatName);
             Assert.AreEqual("h264", indexer.GetCodecName(0));
         }
 
@@ -72,13 +72,13 @@ namespace Tests
         [TestMethod]
         public void IndexAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
 
             Index index = indexer.Index();
 
-            Assert.AreEqual(Sources.Matroska, index.GetSourceType());
-            Assert.AreEqual(IndexErrorHandling.Abort, index.GetErrorHandling());
+            Assert.AreEqual(Source.Matroska, index.Source);
+            Assert.AreEqual(IndexErrorHandling.Abort, index.IndexErrorHandling);
             Assert.AreEqual(1, index.GetFirstTrackOfType(TrackType.Audio));
             Assert.AreEqual(1, index.GetFirstIndexedTrackOfType(TrackType.Audio));
 
@@ -106,7 +106,7 @@ namespace Tests
         [TestMethod]
         public void IndexAudioIndex()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Indexer indexer = new Indexer("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv");
 
             List<int> AudioIndexList = new List<int>();
@@ -120,7 +120,7 @@ namespace Tests
         [TestMethod]
         public void ReadIndex()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             
             Assert.IsTrue(index.BelongsToFile("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv"));
@@ -155,14 +155,14 @@ namespace Tests
         [TestMethod]
         public void VideoSourceAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
 
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
             Assert.AreEqual(30000, source.FPSNumerator);
             Assert.AreEqual(15712911, source.RFFNumerator);
-            Assert.AreEqual(2157, source.NumFrames);
+            Assert.AreEqual(2157, source.NumberOfFrames);
             Assert.AreEqual(409440, source.SampleAspectRatioNumerator);
             Assert.AreEqual(0, source.Crop.Left);
             Assert.IsFalse(source.TopFieldFirst);
@@ -174,7 +174,7 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceGetFrameIntOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -185,7 +185,7 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceGetFrameDoubleOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -196,79 +196,79 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceSetOutputFormatWidthOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
-            source.SetOutputFormat(new List<int>(), 0, 10, Resizers.Lanczos);
+            source.SetOutputFormat(new List<int>(), 0, 10, Resizer.Lanczos);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceSetOutputFormatHeightOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
-            source.SetOutputFormat(new List<int>(), 10, 0, Resizers.Lanczos);
+            source.SetOutputFormat(new List<int>(), 10, 0, Resizer.Lanczos);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void VideoSourceSetOutputFormatInvalid()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
             var list = new List<int>();
-            list.Add(FFMS2.GetPixFmt("none"));
-            source.SetOutputFormat(list, 100, 100, Resizers.Bilinear);
+            list.Add(FFMS2.GetPixelFormat("none"));
+            source.SetOutputFormat(list, 100, 100, Resizer.Bilinear);
         }
 
         [TestMethod]
         public void FrameAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
             Frame frame = source.GetFrame(20);
             List<int> targetFormats = new List<int>();
-            targetFormats.Add(FFMS2.GetPixFmt("bgra"));
+            targetFormats.Add(FFMS2.GetPixelFormat("bgra"));
 
-            source.SetOutputFormat(targetFormats, frame.EncodedResolution.Width, frame.EncodedResolution.Height, Resizers.Lanczos);
+            source.SetOutputFormat(targetFormats, frame.EncodedResolution.Width, frame.EncodedResolution.Height, Resizer.Lanczos);
             frame = source.GetFrame(20);
 
             Assert.AreEqual(704, frame.EncodedResolution.Width);
             Assert.AreEqual(0, frame.EncodedPixelFormat);
             Assert.AreEqual(704, frame.Resolution.Width);
-            Assert.AreEqual(FFMS2.GetPixFmt("bgra"), frame.PixelFormat);
+            Assert.AreEqual(FFMS2.GetPixelFormat("bgra"), frame.PixelFormat);
             Assert.AreEqual(false, frame.KeyFrame);
-            Assert.AreEqual(0, frame.RepeatPict);
+            Assert.AreEqual(0, frame.RepeatPicture);
             Assert.AreEqual(false, frame.InterlacedFrame);
             Assert.AreEqual('P', frame.FrameType);
-            Assert.AreEqual(ColorSpaces.BT470BG, frame.ColorSpace);
-            Assert.AreEqual(ColorRanges.MPEG, frame.ColorRange);
+            Assert.AreEqual(ColorSpace.BT470BG, frame.ColorSpace);
+            Assert.AreEqual(ColorRange.MPEG, frame.ColorRange);
 
-            Bitmap bitmap = frame.GetBitmap();
+            Bitmap bitmap = frame.Bitmap;
             bitmap.Save("frame.png", System.Drawing.Imaging.ImageFormat.Png);
             Console.WriteLine("Please confirm that {0}\\frame.png looks good.", Environment.CurrentDirectory);
 
-            source.SetInputFormat(ColorSpaces.RGB);
+            source.SetInputFormat(ColorSpace.RGB);
             frame = source.GetFrame(20);
-            Assert.AreEqual(ColorSpaces.RGB, frame.ColorSpace);
+            Assert.AreEqual(ColorSpace.RGB, frame.ColorSpace);
 
             source.ResetInputFormat();
             frame = source.GetFrame(20);
-            Assert.AreEqual(ColorSpaces.BT470BG, frame.ColorSpace);
+            Assert.AreEqual(ColorSpace.BT470BG, frame.ColorSpace);
         }
 
         [TestMethod]
         public void AudioSourceAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
 
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
@@ -278,7 +278,7 @@ namespace Tests
             Assert.AreEqual(32, source.BitsPerSample);
             Assert.AreEqual(2, source.Channels);
             Assert.AreEqual(3, source.ChannelLayout);
-            Assert.AreEqual(3446272, source.NumSamples);
+            Assert.AreEqual(3446272, source.NumberOfSamples);
             Assert.AreEqual(0, source.FirstTime);
             Assert.AreEqual(71.768, source.LastTime);
 
@@ -292,7 +292,7 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void AudioSourceGetAudioStartOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
 
@@ -303,7 +303,7 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void AudioSourceGetAudioSamplesOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
 
@@ -313,20 +313,20 @@ namespace Tests
         [TestMethod]
         public void VideoTrackAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
-            Track track = source.GetTrack();
+            Track track = source.Track;
 
-            Assert.AreEqual(TrackType.Video, track.Type);
+            Assert.AreEqual(TrackType.Video, track.TrackType);
             Assert.AreEqual(1, track.TimeBaseNumerator);
-            Assert.AreEqual(2157, track.GetNumFrames());
+            Assert.AreEqual(2157, track.NumberOfFrames);
 
             FrameInfo frameinfo = track.GetFrameInfo(20);
 
             Assert.AreEqual(667000000, frameinfo.PTS);
-            Assert.AreEqual(1, frameinfo.RepeatPict);
+            Assert.AreEqual(1, frameinfo.RepeatPicture);
             Assert.AreEqual(false, frameinfo.KeyFrame);
 
             track.WriteTimecodes("timecodes.txt");
@@ -336,15 +336,15 @@ namespace Tests
         [TestMethod]
         public void AudioTrackAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
 
-            Track track = source.GetTrack();
+            Track track = source.Track;
 
-            Assert.AreEqual(TrackType.Audio, track.Type);
+            Assert.AreEqual(TrackType.Audio, track.TrackType);
             Assert.AreEqual(1, track.TimeBaseNumerator);
-            Assert.AreEqual(4490, track.GetNumFrames());
+            Assert.AreEqual(4490, track.NumberOfFrames);
 
             try
             {
@@ -358,14 +358,14 @@ namespace Tests
         [TestMethod]
         public void GenericTrackAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Sources.Matroska));
+            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
 
             Track track = index.GetTrack(2);
 
-            Assert.AreEqual(TrackType.Subtitle, track.Type);
+            Assert.AreEqual(TrackType.Subtitle, track.TrackType);
             Assert.AreEqual(1, track.TimeBaseNumerator);
-            Assert.AreEqual(0, track.GetNumFrames());
+            Assert.AreEqual(0, track.NumberOfFrames);
         }
     }
 }

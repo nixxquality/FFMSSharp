@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
+[assembly: CLSCompliant(false)]
 namespace FFMSsharp
 {
     #region Interop
 
     static partial class NativeMethods
     {
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
-        public static extern bool SetDllDirectory(string lpPathName);
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetDllDirectoryW(string lpPathName);
 
         [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
         public static extern void FFMS_Init(int unused, int UseUTF8Paths);
@@ -39,7 +42,7 @@ namespace FFMSsharp
     /// <summary>
     /// Log level for libavformat
     /// </summary>
-    public enum AvLogLevel
+    public enum AVLogLevel
     {
         /// <summary>
         /// No output
@@ -94,29 +97,37 @@ namespace FFMSsharp
     /// </summary>
     public class Selection
     {
+        int top;
+        int left;
+        int right;
+        int bottom;
         /// <summary>
         /// Amount of Top to crop
         /// </summary>
-        public int Top;
+        public int Top
+        { get { return top; } }
         /// <summary>
         /// Amount of Left to crop
         /// </summary>
-        public int Left;
+        public int Left
+        { get { return left; } }
         /// <summary>
         /// Amount of Right to crop
         /// </summary>
-        public int Right;
+        public int Right
+        { get { return right; } }
         /// <summary>
         /// Amount of Bottom to crop
         /// </summary>
-        public int Bottom;
+        public int Bottom
+        { get { return bottom; } }
 
         internal Selection(int Top, int Left, int Right, int Bottom)
         {
-            this.Top = Top;
-            this.Left = Left;
-            this.Right = Right;
-            this.Bottom = Bottom;
+            top = Top;
+            left = Left;
+            right = Right;
+            bottom = Bottom;
         }
     }
 
@@ -140,21 +151,79 @@ namespace FFMSsharp
         /// <summary>
         /// Is FFMS2 initialized?
         /// </summary>
-        public static bool Initialized { get { return initialized; } }
+        public static bool Initialized
+        { get { return initialized; } }
         /// <summary>
         /// Source modules that the library was compiled with
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetPresentSources</c>.</para>
         /// </remarks>
-        public static int PresentSources { get { return presentSources; } }
+        public static int PresentSources
+        { get { return presentSources; } }
         /// <summary>
         /// Source modules that are actually available for use
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetEnabledSources</c>.</para>
         /// </remarks>
-        public static int EnabledSources { get { return enabledSources; } }
+        public static int EnabledSources
+        { get { return enabledSources; } }
+        /// <summary>
+        /// The FFMS_VERSION constant
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetVersion</c>.</para>
+        /// <para>You may want to use <see cref="VersionString">VersionString</see> if you just want to print the version.</para>
+        /// </remarks>
+        /// <seealso cref="VersionString"/>
+        public static int Version
+        { get { return NativeMethods.FFMS_GetVersion(); } }
+        /// <summary>
+        /// A human-readable version of the FFMS_VERSION constant
+        /// </summary>
+        /// <returns>A pretty version string</returns>
+        /// <seealso cref="Version"/>
+        public static string VersionString
+        {
+            get
+            {
+                int major = Version >> 24;
+                int minor = (Version >> 16) & 0xFF;
+                int micro = (Version >> 8) & 0xFF;
+                int bump = Version & 0xFF;
+
+                if (bump != 0)
+                {
+                    return string.Format(CultureInfo.CurrentCulture, "{0}.{1}.{2}.{3}", major, minor, micro, bump);
+                }
+                else if (micro != 0)
+                {
+                    return string.Format(CultureInfo.CurrentCulture, "{0}.{1}.{2}", major, minor, micro);
+                }
+                else
+                {
+                    return string.Format(CultureInfo.CurrentCulture, "{0}.{1}", major, minor);
+                }
+            }
+        }
+        /// <summary>
+        /// FFmpeg message level
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_GetLogLevel</c> and <c>FFMS_SetLogLevel</c>.</para>
+        /// </remarks>
+        public static AVLogLevel LogLevel
+        {
+            get
+            {
+                return (AVLogLevel)NativeMethods.FFMS_GetLogLevel();
+            }
+            set
+            {
+                NativeMethods.FFMS_SetLogLevel((int)value);
+            }
+        }
 
         #endregion
 
@@ -166,14 +235,15 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Init</c>.</para>
         /// <para>Must be called before anything else.</para>
+        /// <para>If you can't (or don't want to) place ffms2.dll in the same directory as your .exe, you may specify a path where you store it.</para>
         /// </remarks>
-        public static void Initialize(string DllLocation = null)
+        public static void Initialize(string dllPath = null)
         {
             if (initialized)
                 return;
 
-            if (DllLocation != null)
-                NativeMethods.SetDllDirectory(DllLocation);
+            if (dllPath != null)
+                NativeMethods.SetDllDirectoryW(dllPath);
 
             try
             {
@@ -181,7 +251,7 @@ namespace FFMSsharp
             }
             catch (BadImageFormatException)
             {
-                throw new Exception("Cannot locate ffms2.dll");
+                throw new DllNotFoundException("Cannot locate ffms2.dll");
             }
 
             presentSources = NativeMethods.FFMS_GetPresentSources();
@@ -195,7 +265,7 @@ namespace FFMSsharp
         /// </summary>
         /// <param name="option">The source in question</param>
         /// <returns>The result</returns>
-        public static bool IsSourcePresent(Sources option)
+        public static bool IsSourcePresent(Source option)
         {
             return Convert.ToBoolean(presentSources & (int)option);
         }
@@ -205,75 +275,9 @@ namespace FFMSsharp
         /// </summary>
         /// <param name="option">The source in question</param>
         /// <returns>The result</returns>
-        public static bool IsSourceEnabled(Sources option)
+        public static bool IsSourceEnabled(Source option)
         {
             return Convert.ToBoolean(enabledSources & (int)option);
-        }
-
-        /// <summary>
-        /// Get the FFMS_VERSION constant
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetVersion</c>.</para>
-        /// <para>You may want to use <see cref="GetVersionString">GetVersionString</see> if you just want to print the version.</para>
-        /// </remarks>
-        /// <returns>FFMS_VERSION constant as defined in ffms.h as an integer</returns>
-        /// <seealso cref="GetVersionString"/>
-        public static int GetVersion()
-        {
-            return NativeMethods.FFMS_GetVersion();
-        }
-
-        /// <summary>
-        /// Get a human-readable version of the FFMS_VERSION constant
-        /// </summary>
-        /// <returns>A pretty version string</returns>
-        /// <seealso cref="GetVersion"/>
-        public static string GetVersionString()
-        {
-            int version = GetVersion();
-
-            int major = version >> 24;
-            int minor = (version >> 16) & 0xFF;
-            int micro = (version >> 8) & 0xFF;
-            int bump = version & 0xFF;
-
-            if (bump != 0)
-            {
-                return string.Format("{0}.{1}.{2}.{3}", major, minor, micro, bump);
-            }
-            else if (micro != 0)
-            {
-                return string.Format("{0}.{1}.{2}", major, minor, micro);
-            }
-            else
-            {
-                return string.Format("{0}.{1}", major, minor);
-            }
-        }
-
-        /// <summary>
-        /// Gets FFmpeg message level
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_GetLogLevel</c>.</para>
-        /// </remarks>
-        /// <returns>The result</returns>
-        public static AvLogLevel GetLogLevel()
-        {
-            return (AvLogLevel)NativeMethods.FFMS_GetLogLevel();
-        }
-
-        /// <summary>
-        /// Sets FFmpeg message level
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_SetLogLevel</c>.</para>
-        /// </remarks>
-        /// <param name="Level">The new message level</param>
-        public static void SetLogLevel(AvLogLevel Level)
-        {
-            NativeMethods.FFMS_SetLogLevel((int)Level);
         }
 
         /// <summary>
@@ -288,11 +292,11 @@ namespace FFMSsharp
         /// <para>For example, the name of PIX_FMT_YUV420P is yuv420p.</para>
         /// <para>It is strongly recommended to use this function instead of including pixfmt.h directly, since this function guarantees that you will always get the constant definitions from the version of FFmpeg that FFMS2 was linked against.</para>
         /// </remarks>
-        /// <param name="Name"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
-        public static int GetPixFmt(string Name)
+        public static int GetPixelFormat(string name)
         {
-            return NativeMethods.FFMS_GetPixFmt(Name);
+            return NativeMethods.FFMS_GetPixFmt(name);
         }
 
         #endregion
