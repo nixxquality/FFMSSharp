@@ -6,6 +6,16 @@ namespace FFMSsharp
 {
     #region Interop
 
+    [StructLayout(LayoutKind.Sequential)]
+    unsafe struct FFMS_ErrorInfo
+    {
+        internal FFMS_Errors ErrorType;
+        internal FFMS_Errors SubType;
+        public int BufferSize;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string Buffer;
+    }
+
     static partial class NativeMethods
     {
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -37,6 +47,38 @@ namespace FFMSsharp
     #endregion
 
     #region Constants
+
+    enum FFMS_Errors
+    {
+        FFMS_ERROR_SUCCESS = 0,
+
+        // Main types - where the error occurred
+        FFMS_ERROR_INDEX = 1,
+        FFMS_ERROR_INDEXING,
+        FFMS_ERROR_POSTPROCESSING,
+        FFMS_ERROR_SCALING,
+        FFMS_ERROR_DECODING,
+        FFMS_ERROR_SEEKING,
+        FFMS_ERROR_PARSER,
+        FFMS_ERROR_TRACK,
+        FFMS_ERROR_WAVE_WRITER,
+        FFMS_ERROR_CANCELLED,
+        FFMS_ERROR_RESAMPLING,
+
+        // Subtypes - what caused the error
+        FFMS_ERROR_UNKNOWN = 20,
+        FFMS_ERROR_UNSUPPORTED,
+        FFMS_ERROR_FILE_READ,
+        FFMS_ERROR_FILE_WRITE,
+        FFMS_ERROR_NO_FILE,
+        FFMS_ERROR_VERSION,
+        FFMS_ERROR_ALLOCATION_FAILED,
+        FFMS_ERROR_INVALID_ARGUMENT,
+        FFMS_ERROR_CODEC,
+        FFMS_ERROR_NOT_AVAILABLE,
+        FFMS_ERROR_FILE_MISMATCH,
+        FFMS_ERROR_USER
+    }
 
     /// <summary>
     /// Log level for libavformat

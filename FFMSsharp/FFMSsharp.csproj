@@ -45,7 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioSource.cs" />
-    <Compile Include="ErrorHandling.cs" />
     <Compile Include="Frame.cs" />
     <Compile Include="FrameInfo.cs" />
     <Compile Include="GlobalSuppressions.cs" />
