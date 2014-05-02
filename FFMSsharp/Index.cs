@@ -448,6 +448,7 @@ namespace FFMSsharp
         /// <seealso cref="AudioSource"/>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
+        /// <exception cref="System.IO.FileLoadException">Failure to open the <paramref name="sourceFile"/></exception>
         /// <exception cref="ArgumentException">Trying to make a VideoSource out of an invalid track</exception>
         /// <exception cref="InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         public VideoSource VideoSource(string sourceFile, int track, int threads = 1, SeekMode seekMode = SeekMode.Normal)
@@ -461,6 +462,8 @@ namespace FFMSsharp
 
             if (videoSource == IntPtr.Zero)
             {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                    throw new System.IO.FileLoadException(err.Buffer);
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
                     throw new ArgumentException(err.Buffer);
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)

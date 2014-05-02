@@ -47,7 +47,7 @@ namespace Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(FFMSFileReadException))] // Yes. This surprised me too. It's not a NO_FILE error.
+        [ExpectedException(typeof(FileLoadException))]
         public void IndexerFileNotFound()
         {
             Indexer indexer = new Indexer("this file doesn't exist.avi");
@@ -168,6 +168,30 @@ namespace Tests
             Assert.IsFalse(source.TopFieldFirst);
             Assert.AreEqual(0, source.FirstTime);
             Assert.AreEqual(71.939, source.LastTime);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FileLoadException))]
+        public void VideoSourceFileLoadException()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("this file doesn't exist.avi", 0);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void VideoSourceArgumentException()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 10);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void VideoSourceInvalidOperationException()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv", 0);
         }
 
         [TestMethod]

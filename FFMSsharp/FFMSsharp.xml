@@ -1038,6 +1038,7 @@
             <seealso cref="M:FFMSsharp.Index.AudioSource(System.String,System.Int32,FFMSsharp.AudioDelayMode)"/>
             <seealso cref="M:FFMSsharp.Index.GetFirstTrackOfType(FFMSsharp.TrackType)"/>
             <seealso cref="M:FFMSsharp.Index.GetFirstIndexedTrackOfType(FFMSsharp.TrackType)"/>
+            <exception cref="T:System.IO.FileLoadException">Failure to open the <paramref name="sourceFile"/></exception>
             <exception cref="T:System.ArgumentException">Trying to make a VideoSource out of an invalid track</exception>
             <exception cref="T:System.InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         </member>
