@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Drawing;
 
-namespace FFMSsharp
+namespace FFMSSharp
 {
     #region Interop
 

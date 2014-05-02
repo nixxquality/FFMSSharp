@@ -1,4 +1,4 @@
-﻿namespace FFMSsharp
+﻿namespace FFMSSharp
 {
     #region Interop
 

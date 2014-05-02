@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 [assembly: CLSCompliant(false)]
-namespace FFMSsharp
+namespace FFMSSharp
 {
     #region Interop
 

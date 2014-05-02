@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace FFMSsharp
+namespace FFMSSharp
 {
     #region Interop
 
@@ -145,7 +145,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetSourceTypeI</c>.</para>
         /// </remarks>
-        /// <seealso cref="FFMSsharp.Index.Source"/>
+        /// <seealso cref="FFMSSharp.Index.Source"/>
         public Source Source
         { get { return (Source)NativeMethods.FFMS_GetSourceTypeI(FFMS_Indexer); } }
         /// <summary>
@@ -153,9 +153,9 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetNumTrackI</c>.</para>
-        /// <para>Does the same thing as <see cref="FFMSsharp.Index.NumberOfTracks">Index.NumberOfTracks</see> but does not require having the file indexed first.</para>
+        /// <para>Does the same thing as <see cref="FFMSSharp.Index.NumberOfTracks">Index.NumberOfTracks</see> but does not require having the file indexed first.</para>
         /// </remarks>
-        /// <seealso cref="FFMSsharp.Index.NumberOfTracks"/>
+        /// <seealso cref="FFMSSharp.Index.NumberOfTracks"/>
         public int NumberOfTracks
         { get { return NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer); } }
         /// <summary>
@@ -195,7 +195,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
                     throw new System.IO.FileLoadException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -245,12 +245,12 @@ namespace FFMSsharp
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackTypeI</c>.</para>
-        /// <para>Does the same thing as <see cref="FFMSsharp.Track.TrackType">Track.Type</see> but does not require having the file indexed first.</para>
-        /// <para>If you have indexed the file, use <see cref="FFMSsharp.Track.TrackType">Track.Type</see> instead since the <c>FFMS_Indexer</c> object is destroyed when the index is created.</para>
+        /// <para>Does the same thing as <see cref="FFMSSharp.Track.TrackType">Track.Type</see> but does not require having the file indexed first.</para>
+        /// <para>If you have indexed the file, use <see cref="FFMSSharp.Track.TrackType">Track.Type</see> instead since the <c>FFMS_Indexer</c> object is destroyed when the index is created.</para>
         /// </remarks>
         /// <param name="track">Track number</param>
         /// <returns>Track type</returns>
-        /// <seealso cref="FFMSsharp.Track.TrackType"/>
+        /// <seealso cref="FFMSSharp.Track.TrackType"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public TrackType GetTrackType(int track)
         {
@@ -308,10 +308,10 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEXING && err.SubType == FFMS_Errors.FFMS_ERROR_PARSER)
                     throw new System.IO.InvalidDataException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
-            return new FFMSsharp.Index(index);
+            return new FFMSSharp.Index(index);
         }
 
         /// <summary>
@@ -323,7 +323,7 @@ namespace FFMSsharp
         /// </remarks>
         /// <param name="audioIndex">A list of specific <see cref="TrackType.Audio">Audio</see> tracks to index</param>
         /// <param name="indexErrorHandling">Control behavior when a decoding error is encountered</param>
-        /// <returns>The generated <see cref="FFMSsharp.Index">Index</see> object</returns>
+        /// <returns>The generated <see cref="FFMSSharp.Index">Index</see> object</returns>
         /// <event cref="UpdateIndexProgress">Called to give you an update on indexing progress</event>
         /// <event cref="OnIndexingCompleted">Called when the indexing has finished</event>
         /// <exception cref="NotSupportedException">Attempting to index a codec not supported by the indexer</exception>

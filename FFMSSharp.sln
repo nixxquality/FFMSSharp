@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFMSsharp", "FFMSsharp\FFMSsharp.csproj", "{303CA7DC-1B7E-45BE-9A90-A37D72CE4791}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFMSSharp", "FFMSsharp\FFMSSharp.csproj", "{303CA7DC-1B7E-45BE-9A90-A37D72CE4791}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFMSsharp.Tests", "FFMSsharp.Tests\FFMSsharp.Tests.csproj", "{04F8F954-CEF5-4E80-B134-68C99584B338}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFMSSharp.Tests", "FFMSsharp.Tests\FFMSSharp.Tests.csproj", "{04F8F954-CEF5-4E80-B134-68C99584B338}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

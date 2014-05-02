@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace FFMSsharp
+namespace FFMSSharp
 {
     #region Interop
 
@@ -282,7 +282,7 @@ namespace FFMSsharp
         public double LastTime
         { get { return VP.LastTime; } }
 
-        FFMSsharp.Track track;
+        FFMSSharp.Track track;
         /// <summary>
         /// Retrieves track info
         /// </summary>
@@ -299,7 +299,7 @@ namespace FFMSsharp
                 {
                     IntPtr trackPtr = IntPtr.Zero;
                     trackPtr = NativeMethods.FFMS_GetTrackFromVideo(FFMS_VideoSource);
-                    track = new FFMSsharp.Track(trackPtr);
+                    track = new FFMSSharp.Track(trackPtr);
                 }
                 return track;
             }
@@ -378,7 +378,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
                     throw new ArgumentException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -442,7 +442,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
                     throw new ArgumentException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -489,7 +489,7 @@ namespace FFMSsharp
 
             if (framePtr == IntPtr.Zero)
             {
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return new Frame(framePtr);
@@ -525,7 +525,7 @@ namespace FFMSsharp
 
             if (framePtr == IntPtr.Zero)
             {
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return new Frame(framePtr);

@@ -57,9 +57,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FFMSsharp\FFMSsharp.csproj">
+    <ProjectReference Include="..\FFMSsharp\FFMSSharp.csproj">
       <Project>{303ca7dc-1b7e-45be-9a90-a37d72ce4791}</Project>
-      <Name>FFMSsharp</Name>
+      <Name>FFMSSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

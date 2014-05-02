@@ -1,0 +1,17 @@
+﻿<Dictionary>
+  <Words>
+    <Recognized>
+      <Word>FFMS2</Word>
+      <Word>GitHub</Word>
+      <Word>timecode</Word>
+      <Word>timecodes</Word>
+      <Word>demuxer</Word>
+      <Word>FFMSSharp's</Word>
+    </Recognized>
+  </Words>
+  <Acronyms>
+    <CasingExceptions>
+      <Acronym>FFMS</Acronym>
+    </CasingExceptions>
+  </Acronyms>
+</Dictionary>

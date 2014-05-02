@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace FFMSsharp
+namespace FFMSSharp
 {
     #region Interop
 
@@ -190,7 +190,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_TRACK && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_WRITE)
                     throw new System.IO.IOException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 

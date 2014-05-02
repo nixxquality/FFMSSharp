@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace FFMSsharp
+namespace FFMSSharp
 {
     #region Interop
 
@@ -200,7 +200,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetSourceType</c>.</para>
         /// </remarks>
-        /// <seealso cref="FFMSsharp.Indexer.Source"/>
+        /// <seealso cref="FFMSSharp.Indexer.Source"/>
         public Source Source
         {
             get
@@ -215,7 +215,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetErrorHandling</c>.</para>
         /// </remarks>
-        /// <seealso cref="FFMSsharp.Indexer.Index(IEnumerable&lt;int&gt;, FFMSsharp.IndexErrorHandling)"/>
+        /// <seealso cref="FFMSSharp.Indexer.Index(IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>
         public IndexErrorHandling IndexErrorHandling
         {
             get
@@ -266,7 +266,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new NotSupportedException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -339,7 +339,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return track;
@@ -369,7 +369,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
                     throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return track;
@@ -382,7 +382,7 @@ namespace FFMSsharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_WriteIndex</c>.</para>
         /// </remarks>
         /// <param name="indexFile">Can be an absolute or relative path; it will be truncated and overwritten if it already exists</param>
-        /// <exception cref="ApplicationException">Failure to initialize zlib</exception>
+        /// <exception cref="System.IO.IOException">Failure to write the index</exception>
         public void WriteIndex(string indexFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
@@ -392,9 +392,9 @@ namespace FFMSsharp
             if (NativeMethods.FFMS_WriteIndex(indexFile, FFMS_Index, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
-                    throw new ApplicationException(err.Buffer);
+                    throw new System.IO.IOException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
         }
 
@@ -404,7 +404,7 @@ namespace FFMSsharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_IndexBelongsToFile</c>.</para>
         /// <para>Makes a heuristic (but very reliable) guess about whether the index is of the <paramref name="sourceFile"/> or not.</para>
-        /// <para>Useful to determine if the index object you just created by <see cref="FFMSsharp.Index.Index(string)">loading an index file from disk</see> is actually relevant to your interests, since the only two ways to pair up index files with source files are a) trust the user blindly, or b) comparing the filenames; neither is very reliable.</para>
+        /// <para>Useful to determine if the index object you just created by <see cref="FFMSSharp.Index.Index(string)">loading an index file from disk</see> is actually relevant to your interests, since the only two ways to pair up index files with source files are a) trust the user blindly, or b) comparing the filenames; neither is very reliable.</para>
         /// </remarks>
         /// <param name="sourceFile">File to check against</param>
         /// <returns>True or false depending on the result</returns>
@@ -419,7 +419,7 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     return false;
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
             return true;
@@ -430,11 +430,11 @@ namespace FFMSsharp
         #region Object creation
 
         /// <summary>
-        /// Create a <see cref="FFMSsharp.VideoSource">VideoSource object</see>
+        /// Create a <see cref="FFMSSharp.VideoSource">VideoSource object</see>
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_CreateVideoSource</c>.</para>
-        /// <para>Note that the index object is copied into the <see cref="FFMSsharp.VideoSource">VideoSource object</see> upon its creation, so once you've created the video source you can generally destroy the index object immediately, since all info you can retrieve from it is also retrievable from the <see cref="FFMSsharp.VideoSource">VideoSource object</see>.</para>
+        /// <para>Note that the index object is copied into the <see cref="FFMSSharp.VideoSource">VideoSource object</see> upon its creation, so once you've created the video source you can generally destroy the index object immediately, since all info you can retrieve from it is also retrievable from the <see cref="FFMSSharp.VideoSource">VideoSource object</see>.</para>
         /// </remarks>
         /// <param name="sourceFile">The media file. Can be an absolute or relative path</param>
         /// <param name="track">Track number of the specific video track</param>
@@ -444,7 +444,7 @@ namespace FFMSsharp
         /// <param name="seekMode">Controls how seeking (random access) is handled and hence affects frame accuracy
         /// <para>Has no effect on Matroska files, where the equivalent of Normal is always used.</para>
         /// <para>LinearNoRw may come in handy if you want to open images.</para></param>
-        /// <returns>The generated <see cref="FFMSsharp.VideoSource">VideoSource object</see></returns>
+        /// <returns>The generated <see cref="FFMSSharp.VideoSource">VideoSource object</see></returns>
         /// <seealso cref="AudioSource"/>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
@@ -469,23 +469,23 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     throw new InvalidOperationException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
-            return new FFMSsharp.VideoSource(videoSource);
+            return new FFMSSharp.VideoSource(videoSource);
         }
 
         /// <summary>
-        /// Create an <see cref="FFMSsharp.AudioSource">AudioSource object</see>
+        /// Create an <see cref="FFMSSharp.AudioSource">AudioSource object</see>
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_CreateAudioSource</c>.</para>
-        /// <para>Note that the index object is copied into the <see cref="FFMSsharp.AudioSource">AudioSource object</see> upon its creation, so once you've created the video source you can generally destroy the index object immediately, since all info you can retrieve from it is also retrievable from the <see cref="FFMSsharp.AudioSource">AudioSource object</see>.</para>
+        /// <para>Note that the index object is copied into the <see cref="FFMSSharp.AudioSource">AudioSource object</see> upon its creation, so once you've created the video source you can generally destroy the index object immediately, since all info you can retrieve from it is also retrievable from the <see cref="FFMSSharp.AudioSource">AudioSource object</see>.</para>
         /// </remarks>
         /// <param name="sourceFile">The media file. Can be an absolute or relative path</param>
         /// <param name="track">Track number of the specific audio track</param>
         /// <param name="delayMode">Controls how audio with a non-zero first PTS is handled; in other words what FFMS does about audio delay.</param>
-        /// <returns>The generated <see cref="FFMSsharp.AudioSource">AudioSource object</see></returns>
+        /// <returns>The generated <see cref="FFMSSharp.AudioSource">AudioSource object</see></returns>
         /// <seealso cref="VideoSource"/>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
@@ -510,24 +510,24 @@ namespace FFMSsharp
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     throw new InvalidOperationException(err.Buffer);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
-            return new FFMSsharp.AudioSource(audioSource);
+            return new FFMSSharp.AudioSource(audioSource);
         }
 
         /// <summary>
-        /// Create a <see cref="FFMSsharp.Track">Track object</see>
+        /// Create a <see cref="FFMSSharp.Track">Track object</see>
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackFromIndex</c>.</para>
         /// <para>Use this function if you don't want to (or cannot) open the track with <see cref="VideoSource">VideoSource</see> or <see cref="AudioSource">AudioSource</see> first.</para>
-        /// <para>If you already have a <see cref="FFMSsharp.VideoSource">VideoSource object</see> or <see cref="FFMSsharp.AudioSource">AudioSource object</see> it's safer to use the Track property of <see cref="FFMSsharp.VideoSource.Track">VideoSource</see> and <see cref="FFMSsharp.AudioSource.Track">AudioSource</see> instead.</para>
-        /// <para>The returned <see cref="FFMSsharp.Track">Track object</see> is only valid until its parent <see cref="Index">Index object</see> is destroyed.</para>
-        /// <para>Requesting indexing information for a track that has not been indexed will not cause an error, it will just return an empty FFMS_Track (check for >0 frames using <see cref="FFMSsharp.Track.NumberOfFrames">GetNumFrames</see> to see if the returned object actually contains indexing information).</para>
+        /// <para>If you already have a <see cref="FFMSSharp.VideoSource">VideoSource object</see> or <see cref="FFMSSharp.AudioSource">AudioSource object</see> it's safer to use the Track property of <see cref="FFMSSharp.VideoSource.Track">VideoSource</see> and <see cref="FFMSSharp.AudioSource.Track">AudioSource</see> instead.</para>
+        /// <para>The returned <see cref="FFMSSharp.Track">Track object</see> is only valid until its parent <see cref="Index">Index object</see> is destroyed.</para>
+        /// <para>Requesting indexing information for a track that has not been indexed will not cause an error, it will just return an empty FFMS_Track (check for >0 frames using <see cref="FFMSSharp.Track.NumberOfFrames">GetNumFrames</see> to see if the returned object actually contains indexing information).</para>
         /// </remarks>
         /// <param name="track">Track number</param>
-        /// <returns>The generated <see cref="FFMSsharp.Track">Track object</see></returns>
+        /// <returns>The generated <see cref="FFMSSharp.Track">Track object</see></returns>
         /// <seealso cref="GetFirstTrackOfType"/>
         /// <seealso cref="GetFirstIndexedTrackOfType"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
@@ -540,7 +540,7 @@ namespace FFMSsharp
 
             trackPtr = NativeMethods.FFMS_GetTrackFromIndex(FFMS_Index, track);
 
-            return new FFMSsharp.Track(trackPtr);
+            return new FFMSSharp.Track(trackPtr);
         }
 
         #endregion

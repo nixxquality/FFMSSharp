@@ -7,8 +7,8 @@
     <ProjectGuid>{303CA7DC-1B7E-45BE-9A90-A37D72CE4791}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FFMSsharp</RootNamespace>
-    <AssemblyName>FFMSsharp</AssemblyName>
+    <RootNamespace>FFMSSharp</RootNamespace>
+    <AssemblyName>FFMSSharp</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -54,6 +54,9 @@
     <Compile Include="Track.cs" />
     <Compile Include="VideoSource.cs" />
     <Compile Include="FFMS.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <CodeAnalysisDictionary Include="CustomDictionary.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

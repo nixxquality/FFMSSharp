@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FFMSsharp;
+using FFMSSharp;
 using System.Drawing;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +41,7 @@ namespace Tests
             Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
 
             Assert.AreEqual(5, indexer.NumberOfTracks);
-            Assert.AreEqual(FFMSsharp.TrackType.Video, indexer.GetTrackType(0));
+            Assert.AreEqual(FFMSSharp.TrackType.Video, indexer.GetTrackType(0));
             Assert.AreEqual("matroska", indexer.FormatName);
             Assert.AreEqual("h264", indexer.GetCodecName(0));
         }
