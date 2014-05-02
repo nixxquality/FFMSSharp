@@ -174,7 +174,7 @@ namespace FFMSsharp
         /// <para>Only meaningful for video tracks. </para>
         /// </remarks>
         /// <param name="timecodeFile">Can be a relative or absolute path. The file will be truncated and overwritten if it already exists.</param>
-        /// <exception cref="FFMSException"/>
+        /// <exception cref="System.IO.IOException">Failure to open or write to the file</exception>
         public void WriteTimecodes(string timecodeFile)
         {
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
@@ -182,7 +182,16 @@ namespace FFMSsharp
             err.Buffer = new String((char)0, 1024);
 
             if (NativeMethods.FFMS_WriteTimecodes(FFMS_Track, timecodeFile, ref err) != 0)
-                throw ErrorHandling.ExceptionFromErrorInfo(err);
+            {
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ) // FFMS2 2.19 throws this type of error
+                    throw new System.IO.IOException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_TRACK && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
+                    throw new System.IO.IOException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_TRACK && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_WRITE)
+                    throw new System.IO.IOException(err.Buffer);
+
+                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSsharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
+            }
         }
 
         #endregion

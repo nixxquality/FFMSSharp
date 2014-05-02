@@ -1368,7 +1368,7 @@
             <para>Only meaningful for video tracks. </para>
             </remarks>
             <param name="timecodeFile">Can be a relative or absolute path. The file will be truncated and overwritten if it already exists.</param>
-            <exception cref="T:FFMSsharp.FFMSException"/>
+            <exception cref="T:System.IO.IOException">Failure to open or write to the file</exception>
         </member>
         <member name="M:FFMSsharp.Track.GetFrameInfo(System.Int32)">
             <summary>

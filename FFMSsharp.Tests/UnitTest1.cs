@@ -382,6 +382,16 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(IOException))]
+        public void TrackWriteTimecodesIOException()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            source.Track.WriteTimecodes(Path.Combine("this directory doesn't exist", "timecodes.txt"));
+        }
+
+        [TestMethod]
         public void AudioTrackAndAPIFunctions()
         {
             Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
