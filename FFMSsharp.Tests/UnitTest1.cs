@@ -54,6 +54,19 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(OperationCanceledException))]
+        public void IndexerCancelIndexing()
+        {
+            Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
+            indexer.UpdateIndexProgress += delegate(object sender, IndexingProgressChangeEventArgs e)
+            {
+                indexer.CancelIndexing = true;
+            };
+
+            indexer.Index();
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void IndexerGetTrackTypeOutOfRange()
         {

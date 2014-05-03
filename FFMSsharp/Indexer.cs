@@ -128,6 +128,7 @@ namespace FFMSSharp
 
         IntPtr FFMS_Indexer;
         bool isIndexing = false;
+        bool cancelIndexing = false;
         bool disposed = false;
 
         #endregion
@@ -139,6 +140,11 @@ namespace FFMSSharp
         /// </summary>
         public bool IsIndexing
         { get { return isIndexing; } }
+        /// <summary>
+        /// Use this to cancel indexing at any point
+        /// </summary>
+        public bool CancelIndexing
+        { get { return cancelIndexing; } set { cancelIndexing = value; } }
         /// <summary>
         /// Source module that was used to open the indexer
         /// </summary>
@@ -288,6 +294,7 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
             isIndexing = true;
+            cancelIndexing = false;
 
             lock(this)
             {
@@ -400,7 +407,7 @@ namespace FFMSSharp
                     if (Current == Total)
                         OnIndexingCompleted(this, new EventArgs());
             }
-            return 0;
+            return cancelIndexing ? 1 : 0;
         }
 
         #endregion

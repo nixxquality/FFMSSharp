@@ -1072,6 +1072,11 @@
             Use this to check if the Indexer is currently working
             </summary>
         </member>
+        <member name="P:FFMSSharp.Indexer.CancelIndexing">
+            <summary>
+            Use this to cancel indexing at any point
+            </summary>
+        </member>
         <member name="P:FFMSSharp.Indexer.Source">
             <summary>
             Source module that was used to open the indexer
