@@ -33,7 +33,7 @@ namespace FFMSSharp
         public static extern int FFMS_WriteIndex(byte[] IndexFile, IntPtr TrackIndices, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_IndexBelongsToFile(IntPtr Index, string SourceFile, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern int FFMS_IndexBelongsToFile(IntPtr Index, byte[] SourceFile, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_CreateVideoSource(string SourceFile, int Track, IntPtr Index, int Threads, int SeekMode, ref FFMS_ErrorInfo ErrorInfo);
@@ -418,7 +418,9 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (NativeMethods.FFMS_IndexBelongsToFile(FFMS_Index, sourceFile, ref err) != 0)
+            byte[] SourceFile = new byte[sourceFile.Length];
+            SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
+            if (NativeMethods.FFMS_IndexBelongsToFile(FFMS_Index, SourceFile, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     return false;

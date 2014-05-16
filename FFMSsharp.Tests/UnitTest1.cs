@@ -159,6 +159,8 @@ namespace Tests
         public void ReadIndexUTF8()
         {
             Index index = new Index("おはよう.ffindex");
+
+            Assert.IsTrue(index.BelongsToFile("おはよう.mkv"));
         }
 
         [TestMethod]
