@@ -208,6 +208,14 @@ namespace Tests
         }
 
         [TestMethod]
+        public void VideoSourceUTF8()
+        {
+            Index index = new Index("おはよう.ffindex");
+
+            VideoSource source = index.VideoSource("おはよう.mkv", 0);
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(FileLoadException))]
         public void VideoSourceFileLoadException()
         {
