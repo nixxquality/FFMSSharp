@@ -156,6 +156,12 @@ namespace Tests
         }
 
         [TestMethod]
+        public void ReadIndexUTF8()
+        {
+            Index index = new Index("おはよう.ffindex");
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(IOException))]
         public void ReadIndexFileNotFound()
         {

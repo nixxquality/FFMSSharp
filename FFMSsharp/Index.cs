@@ -9,7 +9,7 @@ namespace FFMSSharp
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_ReadIndex(string IndexFile, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern IntPtr FFMS_ReadIndex(byte[] IndexFile, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_DestroyIndex(IntPtr Index);
@@ -257,7 +257,9 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            FFMS_Index = NativeMethods.FFMS_ReadIndex(indexFile, ref err);
+            byte[] IndexFile = new byte[indexFile.Length];
+            IndexFile = System.Text.Encoding.UTF8.GetBytes(indexFile);
+            FFMS_Index = NativeMethods.FFMS_ReadIndex(IndexFile, ref err);
 
             if (FFMS_Index == IntPtr.Zero)
             {
