@@ -39,7 +39,7 @@ namespace FFMSSharp
         public static extern IntPtr FFMS_CreateVideoSource(byte[] SourceFile, int Track, IntPtr Index, int Threads, int SeekMode, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_CreateAudioSource(string SourceFile, int Track, IntPtr Index, int DelayMode, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern IntPtr FFMS_CreateAudioSource(byte[] SourceFile, int Track, IntPtr Index, int DelayMode, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetTrackFromIndex(IntPtr Index, int Track);
@@ -507,7 +507,9 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            audioSource = NativeMethods.FFMS_CreateAudioSource(sourceFile, track, FFMS_Index, (int)delayMode, ref err);
+            byte[] SourceFile = new byte[sourceFile.Length];
+            SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
+            audioSource = NativeMethods.FFMS_CreateAudioSource(SourceFile, track, FFMS_Index, (int)delayMode, ref err);
 
             if (audioSource == IntPtr.Zero)
             {

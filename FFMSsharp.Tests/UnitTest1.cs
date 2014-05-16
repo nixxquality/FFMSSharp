@@ -358,6 +358,14 @@ namespace Tests
         }
 
         [TestMethod]
+        public void AudioSourceUTF8()
+        {
+            Index index = new Index("おはよう.ffindex");
+
+            AudioSource source = index.AudioSource("おはよう.mkv", 1);
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(FileLoadException))]
         public void AudioSourceFileLoadException()
         {
