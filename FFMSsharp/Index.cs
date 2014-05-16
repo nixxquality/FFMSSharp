@@ -253,6 +253,9 @@ namespace FFMSSharp
         /// <exception cref="NotSupportedException">Trying to read an index file for a <see cref="Source">Source</see> that is not available in the ffms2.dll.</exception>
         public Index(string indexFile)
         {
+            if (indexFile == null)
+                throw new ArgumentNullException("indexFile");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
@@ -387,6 +390,9 @@ namespace FFMSSharp
         /// <exception cref="System.IO.IOException">Failure to write the index</exception>
         public void WriteIndex(string indexFile)
         {
+            if (indexFile == null)
+                throw new ArgumentNullException("indexFile");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
@@ -414,6 +420,9 @@ namespace FFMSSharp
         /// <returns>True or false depending on the result</returns>
         public bool BelongsToFile(string sourceFile)
         {
+            if (sourceFile == null)
+                throw new ArgumentNullException("sourceFile");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
@@ -459,6 +468,9 @@ namespace FFMSSharp
         /// <exception cref="InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         public VideoSource VideoSource(string sourceFile, int track, int threads = 1, SeekMode seekMode = SeekMode.Normal)
         {
+            if (sourceFile == null)
+                throw new ArgumentNullException("sourceFile");
+
             IntPtr videoSource = IntPtr.Zero;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
@@ -502,6 +514,9 @@ namespace FFMSSharp
         /// <exception cref="InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         public AudioSource AudioSource(string sourceFile, int track, AudioDelayMode delayMode = AudioDelayMode.FirstVideoTrack)
         {
+            if (sourceFile == null)
+                throw new ArgumentNullException("sourceFile");
+
             IntPtr audioSource = IntPtr.Zero;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;

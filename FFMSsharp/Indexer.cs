@@ -190,6 +190,9 @@ namespace FFMSSharp
         /// <exception cref="System.IO.FileLoadException">Failure to load the media file</exception>
         public Indexer(string sourceFile, Source demuxer = Source.Default)
         {
+            if (sourceFile == null)
+                throw new ArgumentNullException("sourceFile");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);

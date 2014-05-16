@@ -177,6 +177,9 @@ namespace FFMSSharp
         /// <exception cref="System.IO.IOException">Failure to open or write to the file</exception>
         public void WriteTimecodes(string timecodeFile)
         {
+            if (timecodeFile == null)
+                throw new ArgumentNullException("timecodeFile");
+
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
