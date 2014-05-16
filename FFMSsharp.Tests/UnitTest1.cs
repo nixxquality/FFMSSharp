@@ -435,6 +435,16 @@ namespace Tests
         }
 
         [TestMethod]
+        public void TrackWriteTimecodesUTF8()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            source.Track.WriteTimecodes("おはよう.txt");
+            Assert.IsTrue(File.Exists("おはよう.txt"));
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(IOException))]
         public void TrackWriteTimecodesIOException()
         {

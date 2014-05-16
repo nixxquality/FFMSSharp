@@ -26,7 +26,7 @@ namespace FFMSSharp
         public static extern IntPtr FFMS_GetFrameInfo(IntPtr T, int Frame);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_WriteTimecodes(IntPtr T, string TimecodeFile, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern int FFMS_WriteTimecodes(IntPtr T, byte[] TimecodeFile, ref FFMS_ErrorInfo ErrorInfo);
     }
 
     #endregion
@@ -181,7 +181,9 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (NativeMethods.FFMS_WriteTimecodes(FFMS_Track, timecodeFile, ref err) != 0)
+            byte[] TimecodeFile = new byte[timecodeFile.Length];
+            TimecodeFile = System.Text.Encoding.UTF8.GetBytes(timecodeFile);
+            if (NativeMethods.FFMS_WriteTimecodes(FFMS_Track, TimecodeFile, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ) // FFMS2 2.19 throws this type of error
                     throw new System.IO.IOException(err.Buffer);
