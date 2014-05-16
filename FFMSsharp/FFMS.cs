@@ -32,7 +32,7 @@ namespace FFMSSharp
         public static extern void FFMS_SetLogLevel(int Level);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetPixFmt(string Name);
+        public static extern int FFMS_GetPixFmt([MarshalAs(UnmanagedType.LPStr)] string Name);
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetPresentSources();
