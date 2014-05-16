@@ -47,6 +47,12 @@ namespace Tests
         }
 
         [TestMethod]
+        public void IndexerUTF8()
+        {
+            Indexer indexer = new Indexer("おはよう.mkv");
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(FileLoadException))]
         public void IndexerFileNotFound()
         {

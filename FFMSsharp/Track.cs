@@ -13,19 +13,19 @@ namespace FFMSSharp
 
     static partial class NativeMethods
     {
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetTimeBase(IntPtr T);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetTrackType(IntPtr T);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetNumFrames(IntPtr T);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetFrameInfo(IntPtr T, int Frame);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_WriteTimecodes(IntPtr T, string TimecodeFile, ref FFMS_ErrorInfo ErrorInfo);
     }
 

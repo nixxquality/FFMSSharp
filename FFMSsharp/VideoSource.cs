@@ -28,31 +28,31 @@ namespace FFMSSharp
 
     static partial class NativeMethods
     {
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetVideoProperties(IntPtr V);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_DestroyVideoSource(IntPtr V);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_SetOutputFormatV2(IntPtr V, int[] TargetFormats, int Width, int Height, int Resizer, ref FFMS_ErrorInfo ErrorInfo);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_ResetOutputFormatV(IntPtr V);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_SetInputFormatV(IntPtr V, int ColorSpace, int ColorRange, int PixelFormat, ref FFMS_ErrorInfo ErrorInfo);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_ResetInputFormatV(IntPtr V);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetFrame(IntPtr V, int n, ref FFMS_ErrorInfo ErrorInfo);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetFrameByTime(IntPtr V, double Time, ref FFMS_ErrorInfo ErrorInfo);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetTrackFromVideo(IntPtr V);
     }
 

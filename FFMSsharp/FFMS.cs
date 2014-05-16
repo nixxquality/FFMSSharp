@@ -22,25 +22,25 @@ namespace FFMSSharp
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetDllDirectoryW(string lpPathName);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_Init(int unused, int UseUTF8Paths);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetLogLevel();
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_SetLogLevel(int Level);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetPixFmt(string Name);
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetPresentSources();
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetEnabledSources();
 
-        [DllImport("ffms2.dll", SetLastError = false, CharSet = CharSet.Ansi)]
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_GetVersion();
     }
 
@@ -288,7 +288,7 @@ namespace FFMSSharp
 
             try
             {
-                NativeMethods.FFMS_Init(0, 0);
+                NativeMethods.FFMS_Init(0, 1);
             }
             catch (BadImageFormatException)
             {
