@@ -1712,8 +1712,9 @@
             <para>For example, the name of PIX_FMT_YUV420P is yuv420p.</para>
             <para>It is strongly recommended to use this function instead of including pixfmt.h directly, since this function guarantees that you will always get the constant definitions from the version of FFmpeg that FFMS2 was linked against.</para>
             </remarks>
-            <param name="name"></param>
-            <returns></returns>
+            <param name="name">ASCII string identifying the pixel format.</param>
+            <returns>Integer identifying the pixel format.</returns>
+            <exception cref="T:System.ArgumentException">Invalid pixel format identifier.</exception>
         </member>
         <member name="P:FFMSSharp.FFMS2.Initialized">
             <summary>

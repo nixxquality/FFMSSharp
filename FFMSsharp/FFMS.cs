@@ -333,11 +333,19 @@ namespace FFMSSharp
         /// <para>For example, the name of PIX_FMT_YUV420P is yuv420p.</para>
         /// <para>It is strongly recommended to use this function instead of including pixfmt.h directly, since this function guarantees that you will always get the constant definitions from the version of FFmpeg that FFMS2 was linked against.</para>
         /// </remarks>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">ASCII string identifying the pixel format.</param>
+        /// <returns>Integer identifying the pixel format.</returns>
+        /// <exception cref="ArgumentException">Invalid pixel format identifier.</exception>
         public static int GetPixelFormat(string name)
         {
-            return NativeMethods.FFMS_GetPixFmt(name);
+            try
+            {
+                return NativeMethods.FFMS_GetPixFmt(name);
+            }
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException("The identifier must be an ASCII string.", "name", e);
+            }
         }
 
         #endregion

@@ -35,6 +35,13 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void GetPixFmtUTF8()
+        {
+            FFMS2.GetPixelFormat("おはよう");
+        }
+
+        [TestMethod]
         public void IndexerMatroska()
         {
             Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
