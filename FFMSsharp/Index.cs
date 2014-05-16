@@ -30,7 +30,7 @@ namespace FFMSSharp
         public static extern int FFMS_GetNumTracks(IntPtr Index);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_WriteIndex(string IndexFile, IntPtr TrackIndices, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern int FFMS_WriteIndex(byte[] IndexFile, IntPtr TrackIndices, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_IndexBelongsToFile(IntPtr Index, string SourceFile, ref FFMS_ErrorInfo ErrorInfo);
@@ -389,7 +389,9 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            if (NativeMethods.FFMS_WriteIndex(indexFile, FFMS_Index, ref err) != 0)
+            byte[] IndexFile = new byte[indexFile.Length];
+            IndexFile = System.Text.Encoding.UTF8.GetBytes(indexFile);
+            if (NativeMethods.FFMS_WriteIndex(IndexFile, FFMS_Index, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
                     throw new System.IO.IOException(err.Buffer);

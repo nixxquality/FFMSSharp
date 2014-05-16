@@ -105,6 +105,16 @@ namespace Tests
         }
 
         [TestMethod]
+        public void IndexWriteIndexUTF8()
+        {
+            Indexer indexer = new Indexer("おはよう.mkv");
+
+            Index index = indexer.Index();
+
+            index.WriteIndex("おはよう.ffindex");
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(System.Collections.Generic.KeyNotFoundException))]
         public void IndexGetFirstTrackOfTypeNotAvailable()
         {
