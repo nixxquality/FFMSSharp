@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -117,11 +116,16 @@ namespace FFMSSharp
         }
     }
 
-    internal class SafeIndexerHandle : SafeHandleZeroOrMinusOneIsInvalid
+    internal class SafeIndexerHandle : SafeHandle
     {
         private SafeIndexerHandle()
-            : base(true)
+            : base(IntPtr.Zero, true)
         {
+        }
+
+        public override bool IsInvalid
+        {
+            get { return handle == IntPtr.Zero; }
         }
 
         protected override bool ReleaseHandle()
