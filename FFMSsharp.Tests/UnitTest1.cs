@@ -353,11 +353,9 @@ namespace Tests
 
             byte[] buffer = source.GetAudio(0, 100000);
 
-            File.WriteAllBytes("samples.dat", buffer);
             using (var md5 = MD5.Create())
-            using (var stream = File.OpenRead("samples.dat"))
             {
-                Assert.AreEqual("D0-55-BB-E0-35-DA-B4-1E-70-EA-D2-DE-DE-BF-13-DC", BitConverter.ToString(md5.ComputeHash(stream)));
+                Assert.AreEqual("D0-55-BB-E0-35-DA-B4-1E-70-EA-D2-DE-DE-BF-13-DC", BitConverter.ToString(md5.ComputeHash(buffer)));
             }
         }
 
