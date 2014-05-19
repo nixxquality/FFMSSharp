@@ -305,7 +305,6 @@ namespace FFMSSharp
             }
 
             isIndexing = false;
-            handle.Dispose();
 
             if (index.IsInvalid)
             {
