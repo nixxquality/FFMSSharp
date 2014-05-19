@@ -6,7 +6,8 @@ namespace FFMSSharp
 {
     #region Interop
 
-    struct FFMS_VideoProperties
+    [StructLayout(LayoutKind.Sequential)]
+    class FFMS_VideoProperties
     {
         public int FPSDenominator;
         public int FPSNumerator;

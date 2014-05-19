@@ -1,8 +1,11 @@
-﻿namespace FFMSSharp
+﻿using System.Runtime.InteropServices;
+
+namespace FFMSSharp
 {
     #region Interop
 
-    struct FFMS_FrameInfo
+    [StructLayout(LayoutKind.Sequential)]
+    class FFMS_FrameInfo
     {
         public long PTS;
         public int RepeatPict;

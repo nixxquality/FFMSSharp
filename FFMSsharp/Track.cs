@@ -5,7 +5,8 @@ namespace FFMSSharp
 {
     #region Interop
 
-    struct FFMS_TrackTimeBase
+    [StructLayout(LayoutKind.Sequential)]
+    class FFMS_TrackTimeBase
     {
         public long Num;
         public long Den;

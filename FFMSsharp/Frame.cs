@@ -6,7 +6,8 @@ namespace FFMSSharp
 {
     #region Interop
 
-    struct FFMS_Frame
+    [StructLayout(LayoutKind.Sequential)]
+    class FFMS_Frame
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public IntPtr[] Data;
