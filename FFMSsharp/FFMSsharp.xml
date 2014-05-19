@@ -1022,6 +1022,7 @@
             <returns>Track type</returns>
             <seealso cref="P:FFMSSharp.Track.TrackType"/>
             <exception cref="T:System.ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
+            <exception cref="T:System.ObjectDisposedException">Calling this function after you have already called <see cref="M:FFMSSharp.Indexer.Index(System.Collections.Generic.IEnumerable{System.Int32},FFMSSharp.IndexErrorHandling)"/>.</exception>
         </member>
         <member name="M:FFMSSharp.Indexer.GetCodecName(System.Int32)">
             <summary>
@@ -1033,6 +1034,7 @@
             <param name="track">Track number</param>
             <returns>The human-readable name ("long name" in FFmpeg terms) of the codec</returns>
             <exception cref="T:System.ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
+            <exception cref="T:System.ObjectDisposedException">Calling this function after you have already called <see cref="M:FFMSSharp.Indexer.Index(System.Collections.Generic.IEnumerable{System.Int32},FFMSSharp.IndexErrorHandling)"/>.</exception>
         </member>
         <member name="M:FFMSSharp.Indexer.Index(System.Collections.Generic.IEnumerable{System.Int32},FFMSSharp.IndexErrorHandling)">
             <summary>
@@ -1050,6 +1052,7 @@
             <exception cref="T:System.NotSupportedException">Attempting to index a codec not supported by the indexer</exception>
             <exception cref="T:System.IO.InvalidDataException">Failure to index a file that should be supported</exception>
             <exception cref="T:System.OperationCanceledException">Canceling the indexing process</exception>
+            <exception cref="T:System.ObjectDisposedException">Calling this function after you have already called <see cref="M:FFMSSharp.Indexer.Index(System.Collections.Generic.IEnumerable{System.Int32},FFMSSharp.IndexErrorHandling)"/>.</exception>
         </member>
         <member name="P:FFMSSharp.Indexer.IsIndexing">
             <summary>

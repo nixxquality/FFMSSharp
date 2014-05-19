@@ -261,10 +261,13 @@ namespace FFMSSharp
         /// <returns>Track type</returns>
         /// <seealso cref="FFMSSharp.Track.TrackType"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index(System.Collections.Generic.IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>.</exception>
         public TrackType GetTrackType(int track)
         {
             if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
                 throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
+            if (handle.IsInvalid)
+                throw new ObjectDisposedException("Indexer is closed");
 
             return (TrackType)NativeMethods.FFMS_GetTrackTypeI(handle, track);
         }
@@ -278,10 +281,13 @@ namespace FFMSSharp
         /// <param name="track">Track number</param>
         /// <returns>The human-readable name ("long name" in FFmpeg terms) of the codec</returns>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index(System.Collections.Generic.IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>.</exception>
         public string GetCodecName(int track)
         {
             if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
                 throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
+            if (handle.IsInvalid)
+                throw new ObjectDisposedException("Indexer is closed");
 
             return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(handle, track));
         }
@@ -292,6 +298,9 @@ namespace FFMSSharp
 
         private Index Index(int AudioIndexMask, int AudioDumpMask, IndexErrorHandling IndexErrorHandling)
         {
+            if (handle.IsInvalid)
+                throw new ObjectDisposedException("Indexer is closed");
+
             SafeIndexHandle index;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
@@ -338,6 +347,7 @@ namespace FFMSSharp
         /// <exception cref="NotSupportedException">Attempting to index a codec not supported by the indexer</exception>
         /// <exception cref="System.IO.InvalidDataException">Failure to index a file that should be supported</exception>
         /// <exception cref="OperationCanceledException">Canceling the indexing process</exception>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index(System.Collections.Generic.IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>.</exception>
         public Index Index(IEnumerable<int> audioIndex = null, IndexErrorHandling indexErrorHandling = IndexErrorHandling.Abort)
         {
             int indexMask = -1;
