@@ -4,6 +4,7 @@ using FFMSSharp;
 using System.Drawing;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace Tests
 {
@@ -44,7 +45,6 @@ namespace Tests
         [TestMethod]
         public void IndexerMatroska()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
 
             Assert.AreEqual(5, indexer.NumberOfTracks);
@@ -98,7 +98,6 @@ namespace Tests
         [TestMethod]
         public void IndexAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
 
             Index index = indexer.Index();
@@ -142,7 +141,6 @@ namespace Tests
         [TestMethod]
         public void IndexAudioIndex()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Indexer indexer = new Indexer("h264_720p_hp_3.1_600kbps_aac_mp3_dual_audio_harry_potter.mkv");
 
             List<int> AudioIndexList = new List<int>();
@@ -156,7 +154,6 @@ namespace Tests
         [TestMethod]
         public void ReadIndex()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             
             Assert.IsTrue(index.BelongsToFile("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv"));
@@ -199,7 +196,6 @@ namespace Tests
         [TestMethod]
         public void VideoSourceAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
 
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
@@ -250,7 +246,6 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceGetFrameIntOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -261,7 +256,6 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceGetFrameDoubleOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -272,7 +266,6 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceSetOutputFormatWidthOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -283,7 +276,6 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void VideoSourceSetOutputFormatHeightOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -294,7 +286,6 @@ namespace Tests
         [ExpectedException(typeof(ArgumentException))]
         public void VideoSourceSetOutputFormatInvalid()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -306,7 +297,6 @@ namespace Tests
         [TestMethod]
         public void FrameAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -330,7 +320,11 @@ namespace Tests
 
             Bitmap bitmap = frame.Bitmap;
             bitmap.Save("frame.png", System.Drawing.Imaging.ImageFormat.Png);
-            Console.WriteLine("Please confirm that {0}\\frame.png looks good.", Environment.CurrentDirectory);
+            using (var md5 = MD5.Create())
+            using (var stream = File.OpenRead("frame.png"))
+            {
+                Assert.AreEqual("36-7F-6A-D6-7A-12-12-EB-8E-4A-3F-DC-D0-F6-F6-13", BitConverter.ToString(md5.ComputeHash(stream)));
+            }
 
             source.SetInputFormat(ColorSpace.RGB);
             frame = source.GetFrame(20);
@@ -344,7 +338,6 @@ namespace Tests
         [TestMethod]
         public void AudioSourceAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
 
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
@@ -361,7 +354,11 @@ namespace Tests
             byte[] buffer = source.GetAudio(0, 100000);
 
             File.WriteAllBytes("samples.dat", buffer);
-            Console.WriteLine("Please confirm that {0}\\samples.dat sounds good.", Environment.CurrentDirectory);
+            using (var md5 = MD5.Create())
+            using (var stream = File.OpenRead("samples.dat"))
+            {
+                Assert.AreEqual("D0-55-BB-E0-35-DA-B4-1E-70-EA-D2-DE-DE-BF-13-DC", BitConverter.ToString(md5.ComputeHash(stream)));
+            }
         }
 
         [TestMethod]
@@ -400,7 +397,6 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void AudioSourceGetAudioStartOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
 
@@ -411,7 +407,6 @@ namespace Tests
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void AudioSourceGetAudioSamplesOutOfRange()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
 
@@ -421,7 +416,6 @@ namespace Tests
         [TestMethod]
         public void VideoTrackAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
 
@@ -438,7 +432,11 @@ namespace Tests
             Assert.AreEqual(false, frameinfo.KeyFrame);
 
             track.WriteTimecodes("timecodes.txt");
-            Console.WriteLine("Please confirm that {0}\\timecodes.txt looks correct.", Environment.CurrentDirectory);
+            using (var md5 = MD5.Create())
+            using (var stream = File.OpenRead("timecodes.txt"))
+            {
+                Assert.AreEqual("99-ED-D0-4D-D5-09-42-48-60-E8-CD-DC-A5-F7-68-C3", BitConverter.ToString(md5.ComputeHash(stream)));
+            }
         }
 
         [TestMethod]
@@ -464,7 +462,6 @@ namespace Tests
         [TestMethod]
         public void AudioTrackAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             AudioSource source = index.AudioSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 1);
 
@@ -486,7 +483,6 @@ namespace Tests
         [TestMethod]
         public void GenericTrackAndAPIFunctions()
         {
-            Assert.IsTrue(FFMS2.IsSourceEnabled(Source.Matroska));
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
 
             Track track = index.GetTrack(2);
