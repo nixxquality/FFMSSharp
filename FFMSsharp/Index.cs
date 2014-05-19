@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -9,40 +10,40 @@ namespace FFMSSharp
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_ReadIndex(byte[] IndexFile, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern SafeIndexHandle FFMS_ReadIndex(byte[] IndexFile, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_DestroyIndex(IntPtr Index);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetSourceType(IntPtr Index);
+        public static extern int FFMS_GetSourceType(SafeIndexHandle Index);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetErrorHandling(IntPtr Index);
+        public static extern int FFMS_GetErrorHandling(SafeIndexHandle Index);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetFirstTrackOfType(IntPtr Index, int TrackType, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern int FFMS_GetFirstTrackOfType(SafeIndexHandle Index, int TrackType, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetFirstIndexedTrackOfType(IntPtr Index, int TrackType, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern int FFMS_GetFirstIndexedTrackOfType(SafeIndexHandle Index, int TrackType, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetNumTracks(IntPtr Index);
+        public static extern int FFMS_GetNumTracks(SafeIndexHandle Index);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_WriteIndex(byte[] IndexFile, IntPtr TrackIndices, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern int FFMS_WriteIndex(byte[] IndexFile, SafeIndexHandle TrackIndices, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_IndexBelongsToFile(IntPtr Index, byte[] SourceFile, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern int FFMS_IndexBelongsToFile(SafeIndexHandle Index, byte[] SourceFile, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_CreateVideoSource(byte[] SourceFile, int Track, IntPtr Index, int Threads, int SeekMode, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern IntPtr FFMS_CreateVideoSource(byte[] SourceFile, int Track, SafeIndexHandle Index, int Threads, int SeekMode, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_CreateAudioSource(byte[] SourceFile, int Track, IntPtr Index, int DelayMode, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern IntPtr FFMS_CreateAudioSource(byte[] SourceFile, int Track, SafeIndexHandle Index, int DelayMode, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_GetTrackFromIndex(IntPtr Index, int Track);
+        public static extern IntPtr FFMS_GetTrackFromIndex(SafeIndexHandle Index, int Track);
     }
 
     #endregion
@@ -180,6 +181,20 @@ namespace FFMSSharp
 
     #endregion
 
+    internal class SafeIndexHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private SafeIndexHandle()
+            : base(true)
+        {
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            NativeMethods.FFMS_DestroyIndex(handle);
+            return true;
+        }
+    }
+
     /// <summary>
     /// Index of a media file
     /// </summary>
@@ -189,8 +204,7 @@ namespace FFMSSharp
     /// </remarks>
     public class Index : IDisposable
     {
-        IntPtr FFMS_Index;
-        bool disposed = false;
+        SafeIndexHandle handle;
 
         #region Accessors
 
@@ -205,7 +219,7 @@ namespace FFMSSharp
         {
             get
             {
-                return (Source)NativeMethods.FFMS_GetSourceType(FFMS_Index);
+                return (Source)NativeMethods.FFMS_GetSourceType(handle);
             }
         }
 
@@ -220,7 +234,7 @@ namespace FFMSSharp
         {
             get
             {
-                return (IndexErrorHandling)NativeMethods.FFMS_GetErrorHandling(FFMS_Index);
+                return (IndexErrorHandling)NativeMethods.FFMS_GetErrorHandling(handle);
             }
         }
 
@@ -234,7 +248,7 @@ namespace FFMSSharp
         {
             get
             {
-                return NativeMethods.FFMS_GetNumTracks(FFMS_Index);
+                return NativeMethods.FFMS_GetNumTracks(handle);
             }
         }
 
@@ -262,9 +276,9 @@ namespace FFMSSharp
 
             byte[] IndexFile = new byte[indexFile.Length];
             IndexFile = System.Text.Encoding.UTF8.GetBytes(indexFile);
-            FFMS_Index = NativeMethods.FFMS_ReadIndex(IndexFile, ref err);
+            handle = NativeMethods.FFMS_ReadIndex(IndexFile, ref err);
 
-            if (FFMS_Index == IntPtr.Zero)
+            if (handle.IsInvalid)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
                     throw new System.IO.IOException(err.Buffer);
@@ -275,9 +289,9 @@ namespace FFMSSharp
             }
         }
 
-        internal Index(IntPtr Index)
+        internal Index(SafeIndexHandle Index)
         {
-            FFMS_Index = Index;
+            handle = Index;
         }
 
         /// <summary>
@@ -290,31 +304,14 @@ namespace FFMSSharp
         }
 
         /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="Index"/> and optionally releases the managed resources.
+        /// Releases the unmanaged resources used by the <see cref="Index"/>.
         /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (handle != null && !handle.IsInvalid)
             {
-                if (FFMS_Index != IntPtr.Zero)
-                {
-                    NativeMethods.FFMS_DestroyIndex(FFMS_Index);
-                    FFMS_Index = IntPtr.Zero;
-                }
-                disposed = true;
+                handle.Dispose();
             }
-        }
-
-        /// <summary>
-        /// Index destruction
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_DestroyIndex</c>.</para>
-        /// </remarks>
-        ~Index()
-        {
-            Dispose(false);
         }
 
         #endregion
@@ -337,7 +334,7 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            int track = NativeMethods.FFMS_GetFirstTrackOfType(FFMS_Index, (int)type, ref err);
+            int track = NativeMethods.FFMS_GetFirstTrackOfType(handle, (int)type, ref err);
 
             if (track < 0)
             {
@@ -367,7 +364,7 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
-            int track = NativeMethods.FFMS_GetFirstIndexedTrackOfType(FFMS_Index, (int)type, ref err);
+            int track = NativeMethods.FFMS_GetFirstIndexedTrackOfType(handle, (int)type, ref err);
 
             if (track < 0)
             {
@@ -399,7 +396,7 @@ namespace FFMSSharp
 
             byte[] IndexFile = new byte[indexFile.Length];
             IndexFile = System.Text.Encoding.UTF8.GetBytes(indexFile);
-            if (NativeMethods.FFMS_WriteIndex(IndexFile, FFMS_Index, ref err) != 0)
+            if (NativeMethods.FFMS_WriteIndex(IndexFile, handle, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
                     throw new System.IO.IOException(err.Buffer);
@@ -429,7 +426,7 @@ namespace FFMSSharp
 
             byte[] SourceFile = new byte[sourceFile.Length];
             SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            if (NativeMethods.FFMS_IndexBelongsToFile(FFMS_Index, SourceFile, ref err) != 0)
+            if (NativeMethods.FFMS_IndexBelongsToFile(handle, SourceFile, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
                     return false;
@@ -478,7 +475,7 @@ namespace FFMSSharp
 
             byte[] SourceFile = new byte[sourceFile.Length];
             SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            videoSource = NativeMethods.FFMS_CreateVideoSource(SourceFile, track, FFMS_Index, threads, (int)seekMode, ref err);
+            videoSource = NativeMethods.FFMS_CreateVideoSource(SourceFile, track, handle, threads, (int)seekMode, ref err);
 
             if (videoSource == IntPtr.Zero)
             {
@@ -524,7 +521,7 @@ namespace FFMSSharp
 
             byte[] SourceFile = new byte[sourceFile.Length];
             SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            audioSource = NativeMethods.FFMS_CreateAudioSource(SourceFile, track, FFMS_Index, (int)delayMode, ref err);
+            audioSource = NativeMethods.FFMS_CreateAudioSource(SourceFile, track, handle, (int)delayMode, ref err);
 
             if (audioSource == IntPtr.Zero)
             {
@@ -560,10 +557,10 @@ namespace FFMSSharp
         {
             IntPtr trackPtr = IntPtr.Zero;
 
-            if (track < 0 || track > NativeMethods.FFMS_GetNumTracks(FFMS_Index))
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracks(handle))
                 throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
 
-            trackPtr = NativeMethods.FFMS_GetTrackFromIndex(FFMS_Index, track);
+            trackPtr = NativeMethods.FFMS_GetTrackFromIndex(handle, track);
 
             return new FFMSSharp.Track(trackPtr);
         }

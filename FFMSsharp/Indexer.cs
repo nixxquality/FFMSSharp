@@ -33,7 +33,7 @@ namespace FFMSSharp
         public static extern int FFMS_DefaultAudioFilename(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_DoIndexing(IntPtr Indexer, int IndexMask, int DumpMask, TAudioNameCallback ANC, IntPtr ANCPrivate, int ErrorHandling, TIndexCallback IC, IntPtr ICPrivate, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern SafeIndexHandle FFMS_DoIndexing(IntPtr Indexer, int IndexMask, int DumpMask, TAudioNameCallback ANC, IntPtr ANCPrivate, int ErrorHandling, TIndexCallback IC, IntPtr ICPrivate, ref FFMS_ErrorInfo ErrorInfo);
 
         public delegate int TAudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private);
         public delegate int TIndexCallback(long Current, long Total, IntPtr ICPrivate);
@@ -294,7 +294,7 @@ namespace FFMSSharp
 
         private Index Index(int AudioIndexMask, int AudioDumpMask, IndexErrorHandling IndexErrorHandling)
         {
-            IntPtr index = IntPtr.Zero;
+            SafeIndexHandle index;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
@@ -309,7 +309,7 @@ namespace FFMSSharp
             isIndexing = false;
             FFMS_Indexer = IntPtr.Zero;
 
-            if (index == IntPtr.Zero)
+            if (index.IsInvalid)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED)
                     throw new NotSupportedException(err.Buffer);

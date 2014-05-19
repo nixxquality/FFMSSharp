@@ -777,17 +777,8 @@
         </member>
         <member name="M:FFMSSharp.Index.Dispose(System.Boolean)">
             <summary>
-            Releases the unmanaged resources used by the <see cref="T:FFMSSharp.Index"/> and optionally releases the managed resources.
+            Releases the unmanaged resources used by the <see cref="T:FFMSSharp.Index"/>.
             </summary>
-            <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        </member>
-        <member name="M:FFMSSharp.Index.Finalize">
-            <summary>
-            Index destruction
-            </summary>
-            <remarks>
-            <para>In FFMS2, the equivalent is <c>FFMS_DestroyIndex</c>.</para>
-            </remarks>
         </member>
         <member name="M:FFMSSharp.Index.GetFirstTrackOfType(FFMSSharp.TrackType)">
             <summary>
