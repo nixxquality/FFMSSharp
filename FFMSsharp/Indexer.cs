@@ -317,6 +317,7 @@ namespace FFMSSharp
                 index = NativeMethods.FFMS_DoIndexing(handle, AudioIndexMask, AudioDumpMask, AudioNameCallback, IntPtr.Zero, (int)IndexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
             }
 
+            handle.SetHandleAsInvalid(); // "Note that calling this function destroys the FFMS_Indexer object and frees the memory allocated by FFMS_CreateIndexer (even if indexing fails for any reason)."
             isIndexing = false;
 
             if (index.IsInvalid)
