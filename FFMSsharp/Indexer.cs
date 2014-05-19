@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -9,31 +10,31 @@ namespace FFMSSharp
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetSourceTypeI(IntPtr Indexer);
-
-        [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetNumTracksI(IntPtr Indexer);
-
-        [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_GetTrackTypeI(IntPtr Indexer, int Track);
-
-        [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_GetCodecNameI(IntPtr Indexer, int Track);
-
-        [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_GetFormatNameI(IntPtr Indexer);
-
-        [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern IntPtr FFMS_CreateIndexerWithDemuxer(byte[] SourceFile, int Demuxer, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern SafeIndexerHandle FFMS_CreateIndexerWithDemuxer(byte[] SourceFile, int Demuxer, ref FFMS_ErrorInfo ErrorInfo);
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern void FFMS_CancelIndexing(IntPtr Indexer);
 
         [DllImport("ffms2.dll", SetLastError = false)]
+        public static extern int FFMS_GetSourceTypeI(SafeIndexerHandle Indexer);
+
+        [DllImport("ffms2.dll", SetLastError = false)]
+        public static extern int FFMS_GetNumTracksI(SafeIndexerHandle Indexer);
+
+        [DllImport("ffms2.dll", SetLastError = false)]
+        public static extern int FFMS_GetTrackTypeI(SafeIndexerHandle Indexer, int Track);
+
+        [DllImport("ffms2.dll", SetLastError = false)]
+        public static extern IntPtr FFMS_GetCodecNameI(SafeIndexerHandle Indexer, int Track);
+
+        [DllImport("ffms2.dll", SetLastError = false)]
+        public static extern IntPtr FFMS_GetFormatNameI(SafeIndexerHandle Indexer);
+
+        [DllImport("ffms2.dll", SetLastError = false)]
         public static extern int FFMS_DefaultAudioFilename(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern SafeIndexHandle FFMS_DoIndexing(IntPtr Indexer, int IndexMask, int DumpMask, TAudioNameCallback ANC, IntPtr ANCPrivate, int ErrorHandling, TIndexCallback IC, IntPtr ICPrivate, ref FFMS_ErrorInfo ErrorInfo);
+        public static extern SafeIndexHandle FFMS_DoIndexing(SafeIndexerHandle Indexer, int IndexMask, int DumpMask, TAudioNameCallback ANC, IntPtr ANCPrivate, int ErrorHandling, TIndexCallback IC, IntPtr ICPrivate, ref FFMS_ErrorInfo ErrorInfo);
 
         public delegate int TAudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private);
         public delegate int TIndexCallback(long Current, long Total, IntPtr ICPrivate);
@@ -116,6 +117,20 @@ namespace FFMSSharp
         }
     }
 
+    internal class SafeIndexerHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private SafeIndexerHandle()
+            : base(true)
+        {
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            NativeMethods.FFMS_CancelIndexing(handle);
+            return true;
+        }
+    }
+
     /// <summary>
     /// Media file indexer
     /// </summary>
@@ -126,10 +141,9 @@ namespace FFMSSharp
     {
         #region Private properties
 
-        IntPtr FFMS_Indexer;
+        SafeIndexerHandle handle;
         bool isIndexing = false;
         bool cancelIndexing = false;
-        bool disposed = false;
 
         #endregion
 
@@ -153,7 +167,7 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FFMSSharp.Index.Source"/>
         public Source Source
-        { get { return (Source)NativeMethods.FFMS_GetSourceTypeI(FFMS_Indexer); } }
+        { get { return (Source)NativeMethods.FFMS_GetSourceTypeI(handle); } }
         /// <summary>
         /// The number of tracks
         /// </summary>
@@ -163,7 +177,7 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FFMSSharp.Index.NumberOfTracks"/>
         public int NumberOfTracks
-        { get { return NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer); } }
+        { get { return NativeMethods.FFMS_GetNumTracksI(handle); } }
         /// <summary>
         /// The name of the container format of the media file
         /// </summary>
@@ -171,7 +185,7 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetFormatNameI</c>.</para>
         /// </remarks>
         public string FormatName
-        { get { return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetFormatNameI(FFMS_Indexer)); } }
+        { get { return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetFormatNameI(handle)); } }
 
         #endregion
 
@@ -199,9 +213,9 @@ namespace FFMSSharp
 
             byte[] SourceFile = new byte[sourceFile.Length];
             SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            FFMS_Indexer = NativeMethods.FFMS_CreateIndexerWithDemuxer(SourceFile, (int)demuxer, ref err);
+            handle = NativeMethods.FFMS_CreateIndexerWithDemuxer(SourceFile, (int)demuxer, ref err);
 
-            if (FFMS_Indexer == IntPtr.Zero)
+            if (handle.IsInvalid)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
                     throw new System.IO.FileLoadException(err.Buffer);
@@ -220,31 +234,15 @@ namespace FFMSSharp
         }
 
         /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="Indexer"/> and optionally releases the managed resources.
+        /// Releases the unmanaged resources used by the <see cref="Indexer"/>.
         /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        /// <param name="disposing">This doesn't do anything.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (handle != null && !handle.IsInvalid)
             {
-                if (FFMS_Indexer != IntPtr.Zero)
-                {
-                    NativeMethods.FFMS_CancelIndexing(FFMS_Indexer);
-                    FFMS_Indexer = IntPtr.Zero;
-                }
-                disposed = true;
+                handle.Dispose();
             }
-        }
-
-        /// <summary>
-        /// Indexer destruction
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_CancelIndexing</c>.</para>
-        /// </remarks>
-        ~Indexer()
-        {
-            Dispose(false);
         }
 
         #endregion
@@ -265,10 +263,10 @@ namespace FFMSSharp
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public TrackType GetTrackType(int track)
         {
-            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
                 throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
 
-            return (TrackType)NativeMethods.FFMS_GetTrackTypeI(FFMS_Indexer, track);
+            return (TrackType)NativeMethods.FFMS_GetTrackTypeI(handle, track);
         }
 
         /// <summary>
@@ -282,10 +280,10 @@ namespace FFMSSharp
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public string GetCodecName(int track)
         {
-            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(FFMS_Indexer))
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
                 throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
 
-            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(FFMS_Indexer, track));
+            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(handle, track));
         }
 
         #endregion
@@ -303,11 +301,11 @@ namespace FFMSSharp
 
             lock(this)
             {
-                index = NativeMethods.FFMS_DoIndexing(FFMS_Indexer, AudioIndexMask, AudioDumpMask, AudioNameCallback, IntPtr.Zero, (int)IndexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
+                index = NativeMethods.FFMS_DoIndexing(handle, AudioIndexMask, AudioDumpMask, AudioNameCallback, IntPtr.Zero, (int)IndexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
             }
 
             isIndexing = false;
-            FFMS_Indexer = IntPtr.Zero;
+            handle.Dispose();
 
             if (index.IsInvalid)
             {

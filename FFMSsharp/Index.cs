@@ -306,6 +306,7 @@ namespace FFMSSharp
         /// <summary>
         /// Releases the unmanaged resources used by the <see cref="Index"/>.
         /// </summary>
+        /// <param name="disposing">This doesn't do anything.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (handle != null && !handle.IsInvalid)
