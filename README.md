@@ -1,7 +1,5 @@
-FFMS#
+FFMS# [![Build status](https://ci.appveyor.com/api/projects/status/mamdalshsmrq49rh)](https://ci.appveyor.com/project/nixxquality/ffmssharp)
 =====
-
-[![Build status](https://ci.appveyor.com/api/projects/status/mamdalshsmrq49rh)](https://ci.appveyor.com/project/nixxquality/ffmssharp)
 
 C# wrapper for [FFMS2](//github.com/ffms/ffms2)
 
@@ -9,11 +7,11 @@ C# wrapper for [FFMS2](//github.com/ffms/ffms2)
 1. Download the [latest FFMSSharp.dll](//github.com/nixxquality/FFMSSharp/releases)
 2. Reference it in your C# application
 3. Download [ffms2.dll](//github.com/ffms/ffms2/releases)
-4. Put it next to your .exe file
+4. Put it next to your .exe file (or in a folder near your .exe file, see ```FFMS2.Initialize(string)```)
 5. Use FFMS2!
 
 ### Things to keep in mind
-- Right now the code is in a very immature state, do not use it in production or you may open security holes.
+- Right now the code is in a very immature state, do not use it in production or bad things might happen.
 
 ### Example
 ```C#
