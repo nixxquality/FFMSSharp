@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace FFMSSharp
 {
@@ -102,7 +103,7 @@ namespace FFMSSharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_CS_YCOCG</c>.</para>
         /// </remarks>
-        YCOCG = 8,
+        YCoCg = 8,
         /// <summary>
         /// ITU-R BT. 2020
         /// </summary>
@@ -180,14 +181,14 @@ namespace FFMSSharp
         /// <para>If you want to determine if plane i contains data or not, check for <see cref="DataLength"/>[i] != 0.</para>
         /// </remarks>
         /// <exception cref="ObjectDisposedException">Trying to access data from an invalidated Frame, see <see cref="Frame"/>.</exception>
-        public List<IntPtr> Data
+        public ReadOnlyCollection<IntPtr> Data
         {
             get
             {
                 if (this.Invalid)
                     throw new ObjectDisposedException("Frame");
 
-                return new List<IntPtr>(FFMS_Frame.Data);
+                return new ReadOnlyCollection<IntPtr>(FFMS_Frame.Data);
             }
         }
         /// <summary>
@@ -201,14 +202,14 @@ namespace FFMSSharp
         /// <para>You usually do not need to worry about this, as it mostly works correctly by default if you're processing the image correctly.</para>
         /// </remarks>
         /// <exception cref="ObjectDisposedException">Trying to access data from an invalidated Frame, see <see cref="Frame"/>.</exception>
-        public List<int> DataLength
+        public ReadOnlyCollection<int> DataLength
         {
             get
             {
                 if (this.Invalid)
                     throw new ObjectDisposedException("Frame");
 
-                return new List<int>(FFMS_Frame.Linesize);
+                return new ReadOnlyCollection<int>(FFMS_Frame.Linesize);
             }
         }
         /// <summary>

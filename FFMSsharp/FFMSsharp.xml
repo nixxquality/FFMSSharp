@@ -408,7 +408,7 @@
             <para>In FFMS2, the equivalent is <c>FFMS_CS_SMPTE240M</c>.</para>
             </remarks>
         </member>
-        <member name="F:FFMSSharp.ColorSpace.YCOCG">
+        <member name="F:FFMSSharp.ColorSpace.YCoCg">
             <summary>
             YCoCg
             </summary>
