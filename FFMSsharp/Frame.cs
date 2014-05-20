@@ -94,7 +94,28 @@ namespace FFMSSharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_CS_SMPTE240M</c>.</para>
         /// </remarks>
-        SMPTE240M = 7
+        SMPTE240M = 7,
+        /// <summary>
+        /// YCoCg
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_CS_YCOCG</c>.</para>
+        /// </remarks>
+        YCOCG = 8,
+        /// <summary>
+        /// ITU-R BT. 2020
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_BT2020_NCL</c>.</para>
+        /// </remarks>
+        BT2020_NCL = 9,
+        /// <summary>
+        /// ITU-R BT. 2020
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_BT2020_CL</c>.</para>
+        /// </remarks>
+        BT2020_CL = 10
     }
 
     /// <summary>

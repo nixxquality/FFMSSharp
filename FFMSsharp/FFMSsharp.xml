@@ -408,6 +408,30 @@
             <para>In FFMS2, the equivalent is <c>FFMS_CS_SMPTE240M</c>.</para>
             </remarks>
         </member>
+        <member name="F:FFMSSharp.ColorSpace.YCOCG">
+            <summary>
+            YCoCg
+            </summary>
+            <remarks>
+            <para>In FFMS2, the equivalent is <c>FFMS_CS_YCOCG</c>.</para>
+            </remarks>
+        </member>
+        <member name="F:FFMSSharp.ColorSpace.BT2020_NCL">
+            <summary>
+            ITU-R BT. 2020
+            </summary>
+            <remarks>
+            <para>In FFMS2, the equivalent is <c>FFMS_BT2020_NCL</c>.</para>
+            </remarks>
+        </member>
+        <member name="F:FFMSSharp.ColorSpace.BT2020_CL">
+            <summary>
+            ITU-R BT. 2020
+            </summary>
+            <remarks>
+            <para>In FFMS2, the equivalent is <c>FFMS_BT2020_CL</c>.</para>
+            </remarks>
+        </member>
         <member name="T:FFMSSharp.ColorRange">
             <summary>
             Identifies the valid range of luma values in a YUV stream
