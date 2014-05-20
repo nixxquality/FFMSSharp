@@ -233,7 +233,7 @@ namespace FFMSSharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetErrorHandling</c>.</para>
         /// </remarks>
-        /// <seealso cref="FFMSSharp.Indexer.Index(IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>
+        /// <seealso cref="FFMSSharp.Indexer.Index"/>
         public IndexErrorHandling IndexErrorHandling
         {
             get

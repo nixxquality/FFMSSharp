@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace FFMSSharp
 {
@@ -30,12 +31,12 @@ namespace FFMSSharp
         public static extern IntPtr FFMS_GetFormatNameI(SafeIndexerHandle Indexer);
 
         [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern int FFMS_DefaultAudioFilename(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private);
+        public static extern int FFMS_DefaultAudioFilename(string SourceFile, int Track, ref FFMS_AudioProperties AP, StringBuilder FileName, int FNSize, IntPtr Private);
 
-        [DllImport("ffms2.dll", SetLastError = false)]
-        public static extern SafeIndexHandle FFMS_DoIndexing(SafeIndexerHandle Indexer, int IndexMask, int DumpMask, TAudioNameCallback ANC, IntPtr ANCPrivate, int ErrorHandling, TIndexCallback IC, IntPtr ICPrivate, ref FFMS_ErrorInfo ErrorInfo);
+        [DllImport("ffms2.dll", SetLastError = false, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+        public static extern SafeIndexHandle FFMS_DoIndexing(SafeIndexerHandle Indexer, int IndexMask, int DumpMask, TAudioNameCallback ANC, [MarshalAs(UnmanagedType.LPStr)] string ANCPrivate, int ErrorHandling, TIndexCallback IC, IntPtr ICPrivate, ref FFMS_ErrorInfo ErrorInfo);
 
-        public delegate int TAudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private);
+        public delegate int TAudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, StringBuilder FileName, int FNSize, IntPtr Private);
         public delegate int TIndexCallback(long Current, long Total, IntPtr ICPrivate);
     }
 
@@ -265,7 +266,7 @@ namespace FFMSSharp
         /// <returns>Track type</returns>
         /// <seealso cref="FFMSSharp.Track.TrackType"/>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
-        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index(System.Collections.Generic.IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>.</exception>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index"/>.</exception>
         public TrackType GetTrackType(int track)
         {
             if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
@@ -285,7 +286,7 @@ namespace FFMSSharp
         /// <param name="track">Track number</param>
         /// <returns>The human-readable name ("long name" in FFmpeg terms) of the codec</returns>
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
-        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index(System.Collections.Generic.IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>.</exception>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index"/>.</exception>
         public string GetCodecName(int track)
         {
             if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
@@ -300,10 +301,59 @@ namespace FFMSSharp
 
         #region Object creation
 
-        private Index Index(int AudioIndexMask, int AudioDumpMask, IndexErrorHandling IndexErrorHandling)
+        /// <summary>
+        /// Index the media file
+        /// </summary>
+        /// <remarks>
+        /// <para>In FFMS2, the equivalent is <c>FFMS_DoIndexing</c>.</para>
+        /// <para>By default, you will index all <see cref="TrackType.Audio">Audio</see> tracks.</para>
+        /// </remarks>
+        /// <param name="audioIndex">A list of specific <see cref="TrackType.Audio">Audio</see> tracks to index</param>
+        /// <param name="audioDump">A list of <see cref="TrackType.Audio">Audio</see> tracks to dump while indexing</param>
+        /// <param name="audioDumpFileName">The filename format for audio tracks getting dumped
+        /// <para>The following variables can be used:</para>
+        /// <para><c>%sourcefile%</c> - same as the source file name, i.e. the file the audio is decoded from</para>
+        /// <para><c>%trackn%</c> - the track number</para>
+        /// <para><c>%trackzn%</c> - the track number zero padded to 2 digits</para>
+        /// <para><c>%samplerate%</c> - the audio sample rate</para>
+        /// <para><c>%channels%</c> - number of audio channels</para>
+        /// <para><c>%bps%</c> - bits per sample</para>
+        /// <para><c>%delay%</c> - delay, or more exactly the first timestamp encountered in the audio stream</para>
+        /// <para>Example string: <c>%sourcefile%_track%trackzn%.w64</c></para></param>
+        /// <param name="indexErrorHandling">Control behavior when a decoding error is encountered</param>
+        /// <returns>The generated <see cref="FFMSSharp.Index">Index</see> object</returns>
+        /// <event cref="UpdateIndexProgress">Called to give you an update on indexing progress</event>
+        /// <event cref="OnIndexingCompleted">Called when the indexing has finished</event>
+        /// <exception cref="NotSupportedException">Attempting to index a codec not supported by the indexer</exception>
+        /// <exception cref="System.IO.InvalidDataException">Failure to index a file that should be supported</exception>
+        /// <exception cref="OperationCanceledException">Canceling the indexing process</exception>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index"/>.</exception>
+        public Index Index(IEnumerable<int> audioIndex = null, IEnumerable<int> audioDump = null, string audioDumpFileName = null, IndexErrorHandling indexErrorHandling = IndexErrorHandling.Abort)
         {
             if (handle.IsInvalid)
                 throw new ObjectDisposedException("Indexer");
+
+            int indexMask = -1;
+            if (audioIndex != null)
+            {
+                indexMask = 0;
+                foreach (int Track in audioIndex)
+                {
+                    indexMask = indexMask | (1 << Track);
+                }
+            }
+
+            int dumpMask = 0;
+            if (audioDump != null)
+            {
+                if (audioDumpFileName == null)
+                    throw new ArgumentNullException("audioDumpFileName", "You must specify a filename format if you want to dump audio files.");
+
+                foreach (int Track in audioDump)
+                {
+                    dumpMask = dumpMask | (1 << Track);
+                }
+            }
 
             SafeIndexHandle index;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();
@@ -312,9 +362,9 @@ namespace FFMSSharp
             isIndexing = true;
             cancelIndexing = false;
 
-            lock(this)
+            lock (this)
             {
-                index = NativeMethods.FFMS_DoIndexing(handle, AudioIndexMask, AudioDumpMask, AudioNameCallback, IntPtr.Zero, (int)IndexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
+                index = NativeMethods.FFMS_DoIndexing(handle, indexMask, dumpMask, AudioNameCallback, audioDumpFileName, (int)indexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
             }
 
             handle.SetHandleAsInvalid(); // "Note that calling this function destroys the FFMS_Indexer object and frees the memory allocated by FFMS_CreateIndexer (even if indexing fails for any reason)."
@@ -337,67 +387,11 @@ namespace FFMSSharp
             return new FFMSSharp.Index(index);
         }
 
-        /// <summary>
-        /// Index the media file
-        /// </summary>
-        /// <remarks>
-        /// <para>In FFMS2, the equivalent is <c>FFMS_DoIndexing</c>.</para>
-        /// <para>By default, you will index all <see cref="TrackType.Audio">Audio</see> tracks.</para>
-        /// </remarks>
-        /// <param name="audioIndex">A list of specific <see cref="TrackType.Audio">Audio</see> tracks to index</param>
-        /// <param name="indexErrorHandling">Control behavior when a decoding error is encountered</param>
-        /// <returns>The generated <see cref="FFMSSharp.Index">Index</see> object</returns>
-        /// <event cref="UpdateIndexProgress">Called to give you an update on indexing progress</event>
-        /// <event cref="OnIndexingCompleted">Called when the indexing has finished</event>
-        /// <exception cref="NotSupportedException">Attempting to index a codec not supported by the indexer</exception>
-        /// <exception cref="System.IO.InvalidDataException">Failure to index a file that should be supported</exception>
-        /// <exception cref="OperationCanceledException">Canceling the indexing process</exception>
-        /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index(System.Collections.Generic.IEnumerable&lt;int&gt;, FFMSSharp.IndexErrorHandling)"/>.</exception>
-        public Index Index(IEnumerable<int> audioIndex = null, IndexErrorHandling indexErrorHandling = IndexErrorHandling.Abort)
-        {
-            int indexMask = -1;
-
-            if (audioIndex != null)
-            {
-                indexMask = 0;
-                foreach (int Track in audioIndex)
-                {
-                    indexMask = indexMask | (1 << Track);
-                }
-            }
-
-            return Index(indexMask, 0, indexErrorHandling);
-        }
-
-        /*
-         * Audio dumping is broken, so this constructor is hidden.
-         * 
-        public Index Index(List<int> AudioIndex, List<int> AudioDump, IndexErrorHandling IndexErrorHandling = IndexErrorHandling.Abort)
-        {
-            int IndexMask = 0;
-            if (AudioIndex != null)
-            {
-                foreach (int Track in AudioIndex)
-                {
-                    IndexMask = IndexMask | (1 << Track);
-                }
-            }
-
-            int DumpMask = 0;
-            foreach (int Track in AudioDump)
-            {
-                DumpMask = DumpMask | (1 << Track);
-            }
-
-            return Index(IndexMask, DumpMask, IndexErrorHandling);
-        }
-        */
-
         #endregion
 
         #region Callback stuff
 
-        int AudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, IntPtr FileName, int FNSize, IntPtr Private)
+        int AudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, StringBuilder FileName, int FNSize, IntPtr Private)
         {
             return NativeMethods.FFMS_DefaultAudioFilename(SourceFile, Track, ref AP, FileName, FNSize, Private);
         }

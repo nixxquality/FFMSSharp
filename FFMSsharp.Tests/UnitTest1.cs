@@ -152,6 +152,17 @@ namespace Tests
         }
 
         [TestMethod]
+        public void IndexAudioDump()
+        {
+            Indexer indexer = new Indexer("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv");
+
+            List<int> AudioDumpList = new List<int>();
+            AudioDumpList.Add(1);
+
+            indexer.Index(audioDump: AudioDumpList, audioDumpFileName: @"%sourcefile%_track%trackzn%.w64");
+        }
+
+        [TestMethod]
         public void ReadIndex()
         {
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
