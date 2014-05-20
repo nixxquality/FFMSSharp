@@ -271,7 +271,7 @@ namespace FFMSSharp
             if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
                 throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
             if (handle.IsInvalid)
-                throw new ObjectDisposedException("Indexer is closed");
+                throw new ObjectDisposedException("Indexer");
 
             return (TrackType)NativeMethods.FFMS_GetTrackTypeI(handle, track);
         }
@@ -291,7 +291,7 @@ namespace FFMSSharp
             if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
                 throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
             if (handle.IsInvalid)
-                throw new ObjectDisposedException("Indexer is closed");
+                throw new ObjectDisposedException("Indexer");
 
             return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(handle, track));
         }
@@ -303,7 +303,7 @@ namespace FFMSSharp
         private Index Index(int AudioIndexMask, int AudioDumpMask, IndexErrorHandling IndexErrorHandling)
         {
             if (handle.IsInvalid)
-                throw new ObjectDisposedException("Indexer is closed");
+                throw new ObjectDisposedException("Indexer");
 
             SafeIndexHandle index;
             FFMS_ErrorInfo err = new FFMS_ErrorInfo();

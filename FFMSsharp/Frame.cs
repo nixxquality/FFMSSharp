@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace FFMSSharp
 {
@@ -163,6 +164,7 @@ namespace FFMSSharp
     public class Frame
     {
         FFMS_Frame FFMS_Frame;
+        internal bool Invalid;
 
         #region Accessors
 
@@ -175,8 +177,17 @@ namespace FFMSSharp
         /// <para>Packed formats (such as the various RGB32 flavors) use only the first plane.</para>
         /// <para>If you want to determine if plane i contains data or not, check for <see cref="Linesize"/>[i] != 0.</para>
         /// </remarks>
-        public IntPtr[] Data
-        { get { return FFMS_Frame.Data; } }
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
+        public List<IntPtr> Data
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return new List<IntPtr>(FFMS_Frame.Data);
+            }
+        }
         /// <summary>
         /// An array of integers representing the length of each scan line in each of the four picture planes, in bytes
         /// </summary>
@@ -187,8 +198,17 @@ namespace FFMSSharp
         /// <para>This may be negative; if so the image is stored inverted in memory and Data actually points of the last row of the data.</para>
         /// <para>You usually do not need to worry about this, as it mostly works correctly by default if you're processing the image correctly.</para>
         /// </remarks>
-        public int[] Linesize
-        { get { return FFMS_Frame.Linesize; } }
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
+        public List<int> Linesize
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return new List<int>(FFMS_Frame.Linesize);
+            }
+        }
         /// <summary>
         /// The original resolution of the frame (in pixels)
         /// </summary>
@@ -197,8 +217,17 @@ namespace FFMSSharp
         /// <para>As encoded in the compressed file, before any scaling was applied.</para>
         /// <para>Note that this must not necessarily be the same for all frames in a stream.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public Size EncodedResolution
-        { get { return new Size(FFMS_Frame.EncodedWidth, FFMS_Frame.EncodedHeight); } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return new Size(FFMS_Frame.EncodedWidth, FFMS_Frame.EncodedHeight);
+            }
+        }
         /// <summary>
         /// The original pixel format of the frame
         /// </summary>
@@ -206,8 +235,17 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->EncodedPixelFormat</c>.</para>
         /// <para>As encoded in the compressed file.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public int EncodedPixelFormat
-        { get { return FFMS_Frame.EncodedPixelFormat; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return FFMS_Frame.EncodedPixelFormat;
+            }
+        }
         /// <summary>
         /// The output resolution of the frame (in pixels)
         /// </summary>
@@ -215,8 +253,17 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->ScaledWidth</c> and <c>ScaledHeight</c>.</para>
         /// <para>The resolution of what is actually stored in the <see cref="Data"/> field.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public Size Resolution
-        { get { return new Size(FFMS_Frame.ScaledWidth, FFMS_Frame.ScaledHeight); } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return new Size(FFMS_Frame.ScaledWidth, FFMS_Frame.ScaledHeight);
+            }
+        }
         /// <summary>
         /// The output pixel format of the frame
         /// </summary>
@@ -224,16 +271,34 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->ConvertedPixelFormat</c>.</para>
         /// <para>The pixel format of what is actually stored in the <see cref="Data"/> field.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public int PixelFormat
-        { get { return FFMS_Frame.ConvertedPixelFormat; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return FFMS_Frame.ConvertedPixelFormat;
+            }
+        }
         /// <summary>
         /// Is this a keyframe?
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->KeyFrame</c>.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public bool KeyFrame
-        { get { return FFMS_Frame.KeyFrame != 0; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return FFMS_Frame.KeyFrame != 0;
+            }
+        }
         /// <summary>
         /// An integer representing the RFF flag for this frame
         /// </summary>
@@ -242,16 +307,34 @@ namespace FFMSSharp
         /// <para>The frame shall be displayed for 1+<see cref="RepeatPicture"/> time units, where the time units are expressed in the special RFF timebase available in <see cref="VideoSource.RFFNumerator"/> and <see cref="VideoSource.RFFDenominator"/>.</para>
         /// <para>Note that if you actually end up using this, you need to ignore the usual timestamps (calculated via the <see cref="Track.TimeBaseNumerator"/>/<see cref="Track.TimeBaseDenominator"/> and the <see cref="FrameInfo.PTS"/>) since they are fundamentally incompatible with RFF flags.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public int RepeatPicture
-        { get { return FFMS_Frame.RepeatPict; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return FFMS_Frame.RepeatPict;
+            }
+        }
         /// <summary>
         /// Is this an interlaced frame?
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->InterlacedFrame</c>.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public bool InterlacedFrame
-        { get { return FFMS_Frame.InterlacedFrame != 0; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return FFMS_Frame.InterlacedFrame != 0;
+            }
+        }
         /// <summary>
         /// Is the top field first?
         /// </summary>
@@ -259,46 +342,87 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->TopFieldFirst</c>.</para>
         /// <para>Only relevant if <see cref="InterlacedFrame"/> is nonzero.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public bool TopFieldFirst
-        { get { return FFMS_Frame.TopFieldFirst != 0; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return FFMS_Frame.TopFieldFirst != 0;
+            }
+        }
         /// <summary>
         /// A single character denoting coding type (I/B/P etc) of the compressed frame
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame.PictType</c>.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public char FrameType
-        { get { return FFMS_Frame.PictType; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return FFMS_Frame.PictType;
+            }
+        }
         /// <summary>
         /// Identifies the YUV color coefficients used in the frame
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->ColorSpace</c>.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         /// <seealso cref="ColorSpace"/>
         public ColorSpace ColorSpace
-        { get { return (ColorSpace)FFMS_Frame.ColorSpace; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return (ColorSpace)FFMS_Frame.ColorSpace;
+            }
+        }
         /// <summary>
         /// Identifies the luma range of the frame
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_Frame->ColorRange</c>.</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         /// <seealso cref="ColorRange"/>
         public ColorRange ColorRange
-        { get { return (ColorRange)FFMS_Frame.ColorRange; } }
+        {
+            get
+            {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
+                return (ColorRange)FFMS_Frame.ColorRange;
+            }
+        }
         /// <summary>
         /// Turn the pixel data into a <see cref="Bitmap">Bitmap</see>
         /// </summary>
         /// <remarks>
         /// <para>This only works if you've <see cref="VideoSource.SetOutputFormat">set the PixelFormat</see> to "bgra".</para>
         /// </remarks>
+        /// <exception cref="ObjectDisposedException">Calling this function after you have called <see cref="VideoSource.GetFrame">VideoSource.GetFrame</see>, <see cref="VideoSource.SetInputFormat">SetInputFormat</see>, <see cref="VideoSource.ResetInputFormat">ResetInputFormat</see>, <see cref="VideoSource.SetOutputFormat">SetOutputFormat</see>, <see cref="VideoSource.ResetOutputFormat">ResetOutputFormat</see>, or after the <see cref="VideoSource"/> has been destroyed.</exception>
         public Bitmap Bitmap
         {
             get
             {
+                if (this.Invalid)
+                    throw new ObjectDisposedException("Frame");
+
                 if (FFMS_Frame.ConvertedPixelFormat != FFMS2.GetPixelFormat("bgra"))
                     throw new InvalidOperationException("You can only use this function with the brga output format");
+
                 return new Bitmap(FFMS_Frame.ScaledWidth, FFMS_Frame.ScaledHeight, FFMS_Frame.ScaledWidth * 4, System.Drawing.Imaging.PixelFormat.Format32bppArgb, FFMS_Frame.Data[0]);
             }
         }

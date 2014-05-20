@@ -164,6 +164,7 @@ namespace FFMSSharp
 
         IntPtr FFMS_VideoSource;
         FFMS_VideoProperties VP;
+        internal Frame LastFrame;
 
         #endregion
 
@@ -325,7 +326,15 @@ namespace FFMSSharp
         /// </remarks>
         ~VideoSource()
         {
+            MarkLastFrameAsInvalid();
             NativeMethods.FFMS_DestroyVideoSource(FFMS_VideoSource);
+        }
+
+        private void MarkLastFrameAsInvalid()
+        {
+            if (LastFrame != null)
+                LastFrame.Invalid = true;
+            LastFrame = null;
         }
 
         #endregion
@@ -372,6 +381,8 @@ namespace FFMSSharp
             targetFormats.CopyTo(targetFormatsArray, 0);
             targetFormatsArray[targetFormats.Count] = -1;
 
+            MarkLastFrameAsInvalid();
+
             if (NativeMethods.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormatsArray, width, height, (int)resizer, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
@@ -395,6 +406,8 @@ namespace FFMSSharp
         public void ResetOutputFormat()
         {
             NativeMethods.FFMS_ResetOutputFormatV(FFMS_VideoSource);
+
+            MarkLastFrameAsInvalid();
         }
 
         /// <summary>
@@ -436,6 +449,8 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
+            MarkLastFrameAsInvalid();
+
             if (NativeMethods.FFMS_SetInputFormatV(FFMS_VideoSource, (int)colorSpace, (int)colorRange, pixelFormat, ref err) != 0)
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
@@ -458,6 +473,8 @@ namespace FFMSSharp
         public void ResetInputFormat()
         {
             NativeMethods.FFMS_ResetInputFormatV(FFMS_VideoSource);
+
+            MarkLastFrameAsInvalid();
         }
 
         /// <summary>
@@ -482,6 +499,8 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
+            MarkLastFrameAsInvalid();
+
             IntPtr framePtr = IntPtr.Zero;
             lock (this)
             {
@@ -493,7 +512,8 @@ namespace FFMSSharp
                 throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
-            return new Frame(framePtr);
+            LastFrame = new Frame(framePtr);
+            return LastFrame;
         }
 
         /// <summary>
@@ -518,6 +538,8 @@ namespace FFMSSharp
             err.BufferSize = 1024;
             err.Buffer = new String((char)0, 1024);
 
+            MarkLastFrameAsInvalid();
+
             IntPtr framePtr = IntPtr.Zero;
             lock (this)
             {
@@ -529,7 +551,8 @@ namespace FFMSSharp
                 throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
             }
 
-            return new Frame(framePtr);
+            LastFrame = new Frame(framePtr);
+            return LastFrame;
         }
 
         #endregion

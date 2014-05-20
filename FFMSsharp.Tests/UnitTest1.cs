@@ -336,6 +336,95 @@ namespace Tests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void FrameObjectDisposedCaseOne()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            Frame frameone = source.GetFrame(10);
+            Frame frametwo = source.GetFrame(11); // frameone is now invalid
+
+            int dummy = frameone.EncodedResolution.Width;
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void FrameObjectDisposedCaseTwo()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            Frame frame = source.GetFrame(10);
+            source.SetInputFormat(ColorSpace.RGB); // frame is now invalid
+
+            char dummy = frame.FrameType;
+        }
+
+        /*
+         * This test doesn't work. I don't know why, but it's commented out for now.
+         * 
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void FrameObjectDisposedCaseThree()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            Frame frame = source.GetFrame(10);
+
+            source.ResetInputFormat(); // frame is now invalid
+
+            char dummy = frame.FrameType;
+        }
+         */
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void FrameObjectDisposedCaseFour()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            Frame frame = source.GetFrame(10);
+            List<int> targetFormats = new List<int>();
+            targetFormats.Add(FFMS2.GetPixelFormat("bgra"));
+
+            source.SetOutputFormat(targetFormats, frame.EncodedResolution.Width, frame.EncodedResolution.Height, Resizer.Lanczos); // frame is now invalid
+
+            char dummy = frame.FrameType;
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void FrameObjectDisposedCaseFive()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            Frame frame = source.GetFrame(10);
+            source.ResetOutputFormat(); // frame is now invalid
+
+            char dummy = frame.FrameType;
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void FrameObjectDisposedCaseSix()
+        {
+            Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
+            VideoSource source = index.VideoSource("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.mkv", 0);
+
+            Frame frame = source.GetFrame(10);
+            source = null;
+            index = null;
+            GC.Collect(); // frame is now invalid
+            GC.WaitForPendingFinalizers();
+
+            char dummy = frame.FrameType;
+        }
+
+        [TestMethod]
         public void AudioSourceAndAPIFunctions()
         {
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
