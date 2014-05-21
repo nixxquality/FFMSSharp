@@ -374,6 +374,8 @@ namespace FFMSSharp
             {
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED)
                     throw new NotSupportedException(err.Buffer);
+                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED && err.SubType == FFMS_Errors.FFMS_ERROR_DECODING)
+                    throw new NotSupportedException(err.Buffer);
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_DECODING)
                     throw new System.IO.InvalidDataException(err.Buffer);
                 if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CANCELLED && err.SubType == FFMS_Errors.FFMS_ERROR_USER)
