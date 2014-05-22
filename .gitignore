@@ -177,5 +177,5 @@ FakesAssemblies/
 Sandcastle/
 
 # Binary test files
-FFMSsharp.Tests/ffms2.dll
+FFMSsharp.Tests/ffms2*.dll
 FFMSsharp.Tests/*mkv
