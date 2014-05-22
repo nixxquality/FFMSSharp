@@ -9,7 +9,7 @@ using System.Resources;
 [assembly: AssemblyTitle("FFMS#")]
 [assembly: AssemblyDescription("FFMS2 wrapper for C#")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("nixx quality")]
 [assembly: AssemblyProduct("FFMS#")]
 [assembly: AssemblyCopyright("Copyright © nixx quality 2014")]
 [assembly: AssemblyTrademark("")]
@@ -33,6 +33,6 @@ using System.Resources;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.0.0")]
-[assembly: AssemblyFileVersion("2.0.0.0")]
+[assembly: AssemblyVersion("2.0.1.0")]
+[assembly: AssemblyFileVersion("2.0.1.0")]
 [assembly: NeutralResourcesLanguageAttribute("en")]
