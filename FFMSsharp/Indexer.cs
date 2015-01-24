@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -7,6 +9,7 @@ namespace FFMSSharp
 {
     #region Interop
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
@@ -38,6 +41,25 @@ namespace FFMSSharp
 
         public delegate int TAudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, StringBuilder FileName, int FNSize, IntPtr Private);
         public delegate int TIndexCallback(long Current, long Total, IntPtr ICPrivate);
+    }
+
+    internal class SafeIndexerHandle : SafeHandle
+    {
+        private SafeIndexerHandle()
+            : base(IntPtr.Zero, true)
+        {
+        }
+
+        public override bool IsInvalid
+        {
+            get { return handle == IntPtr.Zero; }
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            NativeMethods.FFMS_CancelIndexing(handle);
+            return true;
+        }
     }
 
     #endregion
@@ -96,43 +118,20 @@ namespace FFMSSharp
     /// </summary>
     public class IndexingProgressChangeEventArgs : EventArgs
     {
-        private long current;
-        private long total;
-
         /// <summary>
         /// Current amount of indexing done
         /// </summary>
-        public long Current
-        { get { return current; } }
+        public long Current { get; private set; }
+
         /// <summary>
         /// Total amount of indexing to do
         /// </summary>
-        public long Total
-        { get { return total; } }
+        public long Total { get; private set; }
 
-        internal IndexingProgressChangeEventArgs(long Current, long Total)
+        internal IndexingProgressChangeEventArgs(long current, long total)
         {
-            current = Current;
-            total = Total;
-        }
-    }
-
-    internal class SafeIndexerHandle : SafeHandle
-    {
-        private SafeIndexerHandle()
-            : base(IntPtr.Zero, true)
-        {
-        }
-
-        public override bool IsInvalid
-        {
-            get { return handle == IntPtr.Zero; }
-        }
-
-        protected override bool ReleaseHandle()
-        {
-            NativeMethods.FFMS_CancelIndexing(handle);
-            return true;
+            Current = current;
+            Total = total;
         }
     }
 
@@ -144,26 +143,20 @@ namespace FFMSSharp
     /// </remarks>
     public class Indexer : IDisposable
     {
-        #region Private properties
+        readonly SafeIndexerHandle _handle;
 
-        SafeIndexerHandle handle;
-        bool isIndexing = false;
-        bool cancelIndexing = false;
-
-        #endregion
-
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// Use this to check if the Indexer is currently working
         /// </summary>
-        public bool IsIndexing
-        { get { return isIndexing; } }
+        public bool IsIndexing { get; private set; }
+
         /// <summary>
         /// Use this to cancel indexing at any point
         /// </summary>
-        public bool CancelIndexing
-        { get { return cancelIndexing; } set { cancelIndexing = value; } }
+        public bool CancelIndexing { get; set; }
+
         /// <summary>
         /// Source module that was used to open the indexer
         /// </summary>
@@ -172,7 +165,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FFMSSharp.Index.Source"/>
         public Source Source
-        { get { return (Source)NativeMethods.FFMS_GetSourceTypeI(handle); } }
+        { get { return (Source)NativeMethods.FFMS_GetSourceTypeI(_handle); } }
+
         /// <summary>
         /// The number of tracks
         /// </summary>
@@ -182,7 +176,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FFMSSharp.Index.NumberOfTracks"/>
         public int NumberOfTracks
-        { get { return NativeMethods.FFMS_GetNumTracksI(handle); } }
+        { get { return NativeMethods.FFMS_GetNumTracksI(_handle); } }
+
         /// <summary>
         /// The name of the container format of the media file
         /// </summary>
@@ -190,7 +185,7 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetFormatNameI</c>.</para>
         /// </remarks>
         public string FormatName
-        { get { return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetFormatNameI(handle)); } }
+        { get { return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetFormatNameI(_handle)); } }
 
         #endregion
 
@@ -209,24 +204,23 @@ namespace FFMSSharp
         /// <exception cref="System.IO.FileLoadException">Failure to load the media file</exception>
         public Indexer(string sourceFile, Source demuxer = Source.Default)
         {
-            if (sourceFile == null)
-                throw new ArgumentNullException("sourceFile");
+            if (sourceFile == null) throw new ArgumentNullException(@"sourceFile");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            byte[] SourceFile = new byte[sourceFile.Length];
-            SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            handle = NativeMethods.FFMS_CreateIndexerWithDemuxer(SourceFile, (int)demuxer, ref err);
-
-            if (handle.IsInvalid)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
-                    throw new System.IO.FileLoadException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            byte[] sourceFileBytes = Encoding.UTF8.GetBytes(sourceFile);
+            _handle = NativeMethods.FFMS_CreateIndexerWithDemuxer(sourceFileBytes, (int)demuxer, ref err);
+
+            if (!_handle.IsInvalid) return;
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                throw new System.IO.FileLoadException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -244,9 +238,9 @@ namespace FFMSSharp
         /// <param name="disposing">This doesn't do anything.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (handle != null && !handle.IsInvalid)
+            if (_handle != null && !_handle.IsInvalid)
             {
-                handle.Dispose();
+                _handle.Dispose();
             }
         }
 
@@ -269,12 +263,12 @@ namespace FFMSSharp
         /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index"/>.</exception>
         public TrackType GetTrackType(int track)
         {
-            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
-                throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
-            if (handle.IsInvalid)
-                throw new ObjectDisposedException("Indexer");
+            if (_handle.IsInvalid) throw new ObjectDisposedException(@"Indexer");
 
-            return (TrackType)NativeMethods.FFMS_GetTrackTypeI(handle, track);
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(_handle))
+                throw new ArgumentOutOfRangeException(@"track", "That track doesn't exist.");
+
+            return (TrackType)NativeMethods.FFMS_GetTrackTypeI(_handle, track);
         }
 
         /// <summary>
@@ -289,12 +283,12 @@ namespace FFMSSharp
         /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index"/>.</exception>
         public string GetCodecName(int track)
         {
-            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(handle))
-                throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
-            if (handle.IsInvalid)
-                throw new ObjectDisposedException("Indexer");
+            if (_handle.IsInvalid) throw new ObjectDisposedException(@"Indexer");
 
-            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(handle, track));
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracksI(_handle))
+                throw new ArgumentOutOfRangeException(@"track", "That track doesn't exist.");
+
+            return Marshal.PtrToStringAnsi(NativeMethods.FFMS_GetCodecNameI(_handle, track));
         }
 
         #endregion
@@ -330,70 +324,62 @@ namespace FFMSSharp
         /// <exception cref="ObjectDisposedException">Calling this function after you have already called <see cref="Index"/>.</exception>
         public Index Index(IEnumerable<int> audioIndex = null, IEnumerable<int> audioDump = null, string audioDumpFileName = null, IndexErrorHandling indexErrorHandling = IndexErrorHandling.Abort)
         {
-            if (handle.IsInvalid)
-                throw new ObjectDisposedException("Indexer");
+            if (_handle.IsInvalid) throw new ObjectDisposedException(@"Indexer");
 
-            int indexMask = -1;
+            var indexMask = -1;
             if (audioIndex != null)
             {
-                indexMask = 0;
-                foreach (int Track in audioIndex)
-                {
-                    indexMask = indexMask | (1 << Track);
-                }
+                indexMask = audioIndex.Aggregate(0, (current, track) => current | (1 << track));
             }
 
-            int dumpMask = 0;
+            var dumpMask = 0;
             if (audioDump != null)
             {
                 if (audioDumpFileName == null)
-                    throw new ArgumentNullException("audioDumpFileName", "You must specify a filename format if you want to dump audio files.");
+                    throw new ArgumentNullException(@"audioDumpFileName", "You must specify a filename format if you want to dump audio files.");
 
-                foreach (int Track in audioDump)
-                {
-                    dumpMask = dumpMask | (1 << Track);
-                }
+                dumpMask = audioDump.Aggregate(dumpMask, (current, track) => current | (1 << track));
             }
 
+            var err = new FFMS_ErrorInfo
+            {
+                BufferSize = 1024,
+                Buffer = new String((char)0, 1024)
+            };
             SafeIndexHandle index;
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-            isIndexing = true;
-            cancelIndexing = false;
+            IsIndexing = true;
+            CancelIndexing = false;
 
             lock (this)
             {
-                index = NativeMethods.FFMS_DoIndexing(handle, indexMask, dumpMask, AudioNameCallback, audioDumpFileName, (int)indexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
+                index = NativeMethods.FFMS_DoIndexing(_handle, indexMask, dumpMask, AudioNameCallback, audioDumpFileName, (int)indexErrorHandling, IndexingCallback, IntPtr.Zero, ref err);
             }
 
-            handle.SetHandleAsInvalid(); // "Note that calling this function destroys the FFMS_Indexer object and frees the memory allocated by FFMS_CreateIndexer (even if indexing fails for any reason)."
-            isIndexing = false;
+            _handle.SetHandleAsInvalid(); // "Note that calling this function destroys the FFMS_Indexer object and frees the memory allocated by FFMS_CreateIndexer (even if indexing fails for any reason)."
+            IsIndexing = false;
 
-            if (index.IsInvalid)
-            {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED)
-                    throw new NotSupportedException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED && err.SubType == FFMS_Errors.FFMS_ERROR_DECODING)
-                    throw new NotSupportedException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_DECODING)
-                    throw new System.IO.InvalidDataException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CANCELLED && err.SubType == FFMS_Errors.FFMS_ERROR_USER)
-                    throw new OperationCanceledException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEXING && err.SubType == FFMS_Errors.FFMS_ERROR_PARSER)
-                    throw new System.IO.InvalidDataException(err.Buffer);
+            if (!index.IsInvalid) return new Index(index);
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED)
+                throw new NotSupportedException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_UNSUPPORTED && err.SubType == FFMS_Errors.FFMS_ERROR_DECODING)
+                throw new NotSupportedException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CODEC && err.SubType == FFMS_Errors.FFMS_ERROR_DECODING)
+                throw new System.IO.InvalidDataException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_CANCELLED && err.SubType == FFMS_Errors.FFMS_ERROR_USER)
+                throw new OperationCanceledException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEXING && err.SubType == FFMS_Errors.FFMS_ERROR_PARSER)
+                throw new System.IO.InvalidDataException(err.Buffer);
 
-            return new FFMSSharp.Index(index);
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         #endregion
 
         #region Callback stuff
 
-        int AudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, StringBuilder FileName, int FNSize, IntPtr Private)
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        static int AudioNameCallback(string SourceFile, int Track, ref FFMS_AudioProperties AP, StringBuilder FileName, int FNSize, IntPtr Private)
         {
             return NativeMethods.FFMS_DefaultAudioFilename(SourceFile, Track, ref AP, FileName, FNSize, Private);
         }
@@ -409,18 +395,18 @@ namespace FFMSSharp
         /// </summary>
         public event EventHandler OnIndexingCompleted;
 
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         int IndexingCallback(long Current, long Total, IntPtr ICPrivate)
         {
             lock (this)
             {
-                if (UpdateIndexProgress != null)
-                    UpdateIndexProgress(this, new IndexingProgressChangeEventArgs(Current, Total));
+                if (UpdateIndexProgress != null) UpdateIndexProgress(this, new IndexingProgressChangeEventArgs(Current, Total));
 
-                if (OnIndexingCompleted != null)
-                    if (Current == Total)
-                        OnIndexingCompleted(this, new EventArgs());
+                if (OnIndexingCompleted == null) return CancelIndexing ? 1 : 0;
+
+                if (Current == Total) OnIndexingCompleted(this, new EventArgs());
             }
-            return cancelIndexing ? 1 : 0;
+            return CancelIndexing ? 1 : 0;
         }
 
         #endregion

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace FFMSSharp
 {
     #region Interop
 
+    // ReSharper disable once InconsistentNaming
     struct FFMS_AudioProperties
     {
         public int SampleFormat;
@@ -17,6 +19,7 @@ namespace FFMSSharp
         public double LastTime;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
@@ -42,6 +45,7 @@ namespace FFMSSharp
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS_SampleFormat</c>.</para>
     /// </remarks>
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum SampleFormat
     {
         /// <summary>
@@ -244,14 +248,10 @@ namespace FFMSSharp
     /// </remarks>
     public class AudioSource
     {
-        #region Private properties
+        readonly IntPtr _nativePtr;
+        FFMS_AudioProperties _ap;
 
-        IntPtr FFMS_AudioSource;
-        FFMS_AudioProperties AP;
-
-        #endregion
-
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// Audio sample format
@@ -260,7 +260,8 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_AudioProperties->SampleFormat</c>.</para>
         /// </remarks>
         public SampleFormat SampleFormat
-        { get { return (SampleFormat)AP.SampleFormat; } }
+        { get { return (SampleFormat)_ap.SampleFormat; } }
+
         /// <summary>
         /// Sample rate, in samples per second
         /// </summary>
@@ -268,7 +269,8 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_AudioProperties->SampleRate</c>.</para>
         /// </remarks>
         public int SampleRate
-        { get { return AP.SampleRate; } }
+        { get { return _ap.SampleRate; } }
+
         /// <summary>
         /// Bits per audio sample
         /// </summary>
@@ -278,7 +280,8 @@ namespace FFMSSharp
         /// <para>Figuring out which bytes are significant and which aren't is left as an exercise for the reader.</para>
         /// </remarks>
         public int BitsPerSample
-        { get { return AP.BitsPerSample; } }
+        { get { return _ap.BitsPerSample; } }
+
         /// <summary>
         /// The number of audio channels
         /// </summary>
@@ -286,7 +289,8 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_AudioProperties->Channels</c>.</para>
         /// </remarks>
         public int Channels
-        { get { return AP.Channels; } }
+        { get { return _ap.Channels; } }
+
         /// <summary>
         /// The channel layout of the audio stream
         /// </summary>
@@ -295,7 +299,8 @@ namespace FFMSSharp
         /// <para>Constructed by binary OR'ing the relevant integers from <see cref="ChannelLayout"/> together, which means that if the audio has the channel AudioChannel.Example, the operation (ChannelOrder &amp; AudioChannel.Example) will evaluate to true.</para>
         /// </remarks>
         public long ChannelLayout
-        { get { return AP.ChannelLayout; } }
+        { get { return _ap.ChannelLayout; } }
+
         /// <summary>
         /// The number of samples in the audio track
         /// </summary>
@@ -303,7 +308,8 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_AudioProperties->NumSamples</c>.</para>
         /// </remarks>
         public long NumberOfSamples
-        { get { return AP.NumSamples; } }
+        { get { return _ap.NumSamples; } }
+
         /// <summary>
         /// The first timestamp of the stream, in seconds
         /// </summary>
@@ -313,7 +319,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="LastTime"/>
         public double FirstTime
-        { get { return AP.FirstTime; } }
+        { get { return _ap.FirstTime; } }
+
         /// <summary>
         /// The last timestamp of the stream, in seconds
         /// </summary>
@@ -323,9 +330,10 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FirstTime"/>
         public double LastTime
-        { get { return AP.LastTime; } }
+        { get { return _ap.LastTime; } }
 
-        FFMSSharp.Track track;
+        Track _track;
+
         /// <summary>
         /// Retrieves track info
         /// </summary>
@@ -338,13 +346,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (track == null)
-                {
-                    IntPtr trackPtr = IntPtr.Zero;
-                    trackPtr = NativeMethods.FFMS_GetTrackFromAudio(FFMS_AudioSource);
-                    track = new FFMSSharp.Track(trackPtr);
-                }
-                return track;
+                if (_track != null) return _track;
+
+                var trackPtr = NativeMethods.FFMS_GetTrackFromAudio(_nativePtr);
+                _track = new Track(trackPtr);
+
+                return _track;
             }
         }
         
@@ -353,11 +360,11 @@ namespace FFMSSharp
 
         #region Constructor and destructor
 
-        internal AudioSource(IntPtr AudioSource)
+        internal AudioSource(IntPtr audioSource)
         {
-            FFMS_AudioSource = AudioSource;
-            IntPtr propPtr = NativeMethods.FFMS_GetAudioProperties(AudioSource);
-            AP = (FFMS_AudioProperties)Marshal.PtrToStructure(propPtr, typeof(FFMS_AudioProperties));
+            _nativePtr = audioSource;
+            var propPtr = NativeMethods.FFMS_GetAudioProperties(audioSource);
+            _ap = (FFMS_AudioProperties)Marshal.PtrToStructure(propPtr, typeof(FFMS_AudioProperties));
         }
 
         /// <summary>
@@ -368,7 +375,7 @@ namespace FFMSSharp
         /// </remarks>
         ~AudioSource()
         {
-            NativeMethods.FFMS_DestroyAudioSource(FFMS_AudioSource);
+            NativeMethods.FFMS_DestroyAudioSource(_nativePtr);
         }
 
         #endregion
@@ -395,37 +402,32 @@ namespace FFMSSharp
         public byte[] GetAudio(long start, long count)
         {
             if (start < 0 || start > NumberOfSamples - 1)
-                throw new ArgumentOutOfRangeException("start", "Invalid start sample.");
+                throw new ArgumentOutOfRangeException(@"start", "Invalid start sample.");
             if (count < 0 || start + count > NumberOfSamples - 1)
-                throw new ArgumentOutOfRangeException("count", "Invalid sample count.");
+                throw new ArgumentOutOfRangeException(@"count", "Invalid sample count.");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
+            var err = new FFMS_ErrorInfo
+            {
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-            byte[] buffer = new byte[(AP.BitsPerSample / 8) * AP.Channels * count];
+            var buffer = new byte[(_ap.BitsPerSample / 8) * _ap.Channels * count];
 
             int success;
             lock (this)
             {
-                success = NativeMethods.FFMS_GetAudio(FFMS_AudioSource, buffer, start, count, ref err);
+                success = NativeMethods.FFMS_GetAudio(_nativePtr, buffer, start, count, ref err);
             }
 
-            if (success != 0)
-            {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SEEKING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
-                    throw new NotSupportedException(err.Buffer);
+            if (success == 0) return buffer;
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SEEKING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
+                throw new NotSupportedException(err.Buffer);
 
-            return buffer;
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
-        #endregion
-
-        #region Object creation
-        
         #endregion
     }
 }

@@ -4,6 +4,7 @@ namespace FFMSSharp
 {
     #region Interop
 
+    // ReSharper disable once InconsistentNaming
     [StructLayout(LayoutKind.Sequential)]
     class FFMS_FrameInfo
     {
@@ -23,9 +24,9 @@ namespace FFMSSharp
     /// </remarks>
     public class FrameInfo
     {
-        FFMS_FrameInfo Info;
+        readonly FFMS_FrameInfo _nativeStruct;
 
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// The decoding timestamp of the frame
@@ -34,8 +35,10 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_FrameInfo->PTS</c>.</para>
         /// <para>To convert this to a timestamp in wallclock milliseconds, use the relation long timestamp = (long)((<see cref="FrameInfo.PTS"/> * <see cref="Track.TimeBaseNumerator">Track.TimeBase.Numerator</see>) / (double)<see cref="Track.TimeBaseDenominator">Track.TimeBase.Denumerator</see>).</para>
         /// </remarks>
+        // ReSharper disable once InconsistentNaming
         public long PTS
-        { get { return Info.PTS; } }
+        { get { return _nativeStruct.PTS; } }
+
         /// <summary>
         /// RFF flag for the frame
         /// </summary>
@@ -44,7 +47,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="Frame.RepeatPicture"/>
         public int RepeatPicture
-        { get { return Info.RepeatPict; } }
+        { get { return _nativeStruct.RepeatPict; } }
+
         /// <summary>
         /// Is this a keyframe?
         /// </summary>
@@ -52,15 +56,15 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_FrameInfo->KeyFrame</c>.</para>
         /// </remarks>
         public bool KeyFrame
-        { get { return Info.KeyFrame != 0; } }
+        { get { return _nativeStruct.KeyFrame != 0; } }
 
         #endregion
 
         #region Constructor
 
-        internal FrameInfo(FFMS_FrameInfo FrameInfo)
+        internal FrameInfo(FFMS_FrameInfo frameInfo)
         {
-            this.Info = FrameInfo;
+            _nativeStruct = frameInfo;
         }
 
         #endregion

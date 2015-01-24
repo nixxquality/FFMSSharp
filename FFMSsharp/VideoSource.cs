@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace FFMSSharp
 {
     #region Interop
 
+    // ReSharper disable once InconsistentNaming
     [StructLayout(LayoutKind.Sequential)]
     class FFMS_VideoProperties
     {
@@ -27,6 +29,7 @@ namespace FFMSSharp
         public double LastTime;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
@@ -160,15 +163,11 @@ namespace FFMSSharp
     /// </remarks>
     public class VideoSource
     {
-        #region Private properties
-
-        IntPtr FFMS_VideoSource;
-        FFMS_VideoProperties VP;
+        readonly IntPtr _nativePtr;
+        readonly FFMS_VideoProperties _vp;
         internal Frame LastFrame;
 
-        #endregion
-
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// The nominal framerate of the track
@@ -182,7 +181,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FPSDenominator"/>
         public int FPSNumerator
-        { get { return VP.FPSNumerator; } }
+        { get { return _vp.FPSNumerator; } }
+
         /// <summary>
         /// The nominal framerate of the track
         /// </summary>
@@ -195,7 +195,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FPSNumerator"/>
         public int FPSDenominator
-        { get { return VP.FPSDenominator; } }
+        { get { return _vp.FPSDenominator; } }
+
         /// <summary>
         /// The special RFF timebase
         /// </summary>
@@ -205,7 +206,8 @@ namespace FFMSSharp
         /// <seealso cref="Frame.RepeatPicture"/>
         /// <seealso cref="RFFDenominator"/>
         public int RFFNumerator
-        { get { return VP.RFFNumerator; } }
+        { get { return _vp.RFFNumerator; } }
+
         /// <summary>
         /// The special RFF timebase
         /// </summary>
@@ -215,7 +217,8 @@ namespace FFMSSharp
         /// <seealso cref="Frame.RepeatPicture"/>
         /// <seealso cref="RFFNumerator"/>
         public int RFFDenominator
-        { get { return VP.RFFDenominator; } }
+        { get { return _vp.RFFDenominator; } }
+
         /// <summary>
         /// The number of frames in the video track
         /// </summary>
@@ -223,7 +226,8 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->NumFrames</c>.</para>
         /// </remarks>
         public int NumberOfFrames
-        { get { return VP.NumFrames; } }
+        { get { return _vp.NumFrames; } }
+
         /// <summary>
         /// Sample aspect ratio of the video frames
         /// </summary>
@@ -234,7 +238,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="SampleAspectRatioDenominator"/>
         public int SampleAspectRatioNumerator
-        { get { return VP.SARNum; } }
+        { get { return _vp.SARNum; } }
+
         /// <summary>
         /// Sample aspect ratio of the video frames
         /// </summary>
@@ -245,7 +250,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="SampleAspectRatioNumerator"/>
         public int SampleAspectRatioDenominator
-        { get { return VP.SARDen; } }
+        { get { return _vp.SARDen; } }
+
         /// <summary>
         /// The number of pixels you should crop the frame before displaying it
         /// </summary>
@@ -254,7 +260,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="Selection"/>
         public Selection Crop
-        { get { return new Selection(VP.CropTop, VP.CropLeft, VP.CropRight, VP.CropBottom); } }
+        { get { return new Selection(_vp.CropTop, _vp.CropLeft, _vp.CropRight, _vp.CropBottom); } }
+
         /// <summary>
         /// Is the top field first?
         /// </summary>
@@ -262,7 +269,8 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_VideoProperties->TopFieldFirst</c>.</para>
         /// </remarks>
         public bool TopFieldFirst
-        { get { return VP.TopFieldFirst != 0; } }
+        { get { return _vp.TopFieldFirst != 0; } }
+
         /// <summary>
         /// The first timestamp of the stream, in seconds
         /// </summary>
@@ -272,7 +280,8 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="LastTime"/>
         public double FirstTime
-        { get { return VP.FirstTime; } }
+        { get { return _vp.FirstTime; } }
+
         /// <summary>
         /// The first timestamp of the stream, in seconds
         /// </summary>
@@ -282,9 +291,9 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="FirstTime"/>
         public double LastTime
-        { get { return VP.LastTime; } }
+        { get { return _vp.LastTime; } }
 
-        FFMSSharp.Track track;
+        Track _track;
         /// <summary>
         /// Retrieves track info
         /// </summary>
@@ -297,13 +306,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (track == null)
-                {
-                    IntPtr trackPtr = IntPtr.Zero;
-                    trackPtr = NativeMethods.FFMS_GetTrackFromVideo(FFMS_VideoSource);
-                    track = new FFMSSharp.Track(trackPtr);
-                }
-                return track;
+                if (_track != null) return _track;
+
+                var trackPtr = NativeMethods.FFMS_GetTrackFromVideo(_nativePtr);
+                _track = new Track(trackPtr);
+
+                return _track;
             }
         }
 
@@ -311,11 +319,11 @@ namespace FFMSSharp
 
         #region Constructor and destructor
 
-        internal VideoSource(IntPtr VideoSource)
+        internal VideoSource(IntPtr videoSource)
         {
-            FFMS_VideoSource = VideoSource;
-            IntPtr propPtr = NativeMethods.FFMS_GetVideoProperties(VideoSource);
-            VP = (FFMS_VideoProperties)Marshal.PtrToStructure(propPtr, typeof(FFMS_VideoProperties));
+            _nativePtr = videoSource;
+            var propPtr = NativeMethods.FFMS_GetVideoProperties(videoSource);
+            _vp = (FFMS_VideoProperties)Marshal.PtrToStructure(propPtr, typeof(FFMS_VideoProperties));
         }
 
         /// <summary>
@@ -327,7 +335,7 @@ namespace FFMSSharp
         ~VideoSource()
         {
             MarkLastFrameAsInvalid();
-            NativeMethods.FFMS_DestroyVideoSource(FFMS_VideoSource);
+            NativeMethods.FFMS_DestroyVideoSource(_nativePtr);
         }
 
         private void MarkLastFrameAsInvalid()
@@ -366,32 +374,34 @@ namespace FFMSSharp
         /// <exception cref="ArgumentException">Trying to set an invalid output format.</exception>
         public void SetOutputFormat(ICollection<int> targetFormats, int width, int height, Resizer resizer)
         {
-            if (width <= 0)
-                throw new ArgumentOutOfRangeException("width", "Invalid image width.");
-            if (height <= 0)
-                throw new ArgumentOutOfRangeException("height", "Invalid image height.");
             if (targetFormats == null)
-                throw new ArgumentNullException("targetFormats");
+                throw new ArgumentNullException(@"targetFormats");
+            if (width <= 0)
+                throw new ArgumentOutOfRangeException(@"width", "Invalid image width.");
+            if (height <= 0)
+                throw new ArgumentOutOfRangeException(@"height", "Invalid image height.");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
+            var err = new FFMS_ErrorInfo
+            {
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-            int[] targetFormatsArray = new int[targetFormats.Count + 1];
+            var targetFormatsArray = new int[targetFormats.Count + 1];
             targetFormats.CopyTo(targetFormatsArray, 0);
             targetFormatsArray[targetFormats.Count] = -1;
 
             MarkLastFrameAsInvalid();
 
-            if (NativeMethods.FFMS_SetOutputFormatV2(FFMS_VideoSource, targetFormatsArray, width, height, (int)resizer, ref err) != 0)
-            {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
-                    throw new ArgumentException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
-                    throw new ArgumentException(err.Buffer);
+            if (NativeMethods.FFMS_SetOutputFormatV2(_nativePtr, targetFormatsArray, width, height, (int) resizer, ref err) == 0)
+                return;
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                throw new ArgumentException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
+                throw new ArgumentException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -405,7 +415,7 @@ namespace FFMSSharp
         /// </param>
         public void ResetOutputFormat()
         {
-            NativeMethods.FFMS_ResetOutputFormatV(FFMS_VideoSource);
+            NativeMethods.FFMS_ResetOutputFormatV(_nativePtr);
 
             MarkLastFrameAsInvalid();
         }
@@ -428,6 +438,7 @@ namespace FFMSSharp
         {
             SetInputFormat(FFMS2.GetPixelFormat(""), colorSpace, colorRange);
         }
+
         /// <summary>
         /// Override the source format for video frames
         /// </summary>
@@ -445,21 +456,23 @@ namespace FFMSSharp
         /// <exception cref="ArgumentException">Trying to set an insane input format.</exception>
         public void SetInputFormat(int pixelFormat, ColorSpace colorSpace = ColorSpace.Unspecified, ColorRange colorRange = ColorRange.Unspecified)
         {
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
+            var err = new FFMS_ErrorInfo
+            {
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
             MarkLastFrameAsInvalid();
 
-            if (NativeMethods.FFMS_SetInputFormatV(FFMS_VideoSource, (int)colorSpace, (int)colorRange, pixelFormat, ref err) != 0)
-            {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
-                    throw new ArgumentException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
-                    throw new ArgumentException(err.Buffer);
+            if (NativeMethods.FFMS_SetInputFormatV(_nativePtr, (int) colorSpace, (int) colorRange, pixelFormat, ref err) == 0)
+                return;
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_SCALING && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                throw new ArgumentException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_DECODING && err.SubType == FFMS_Errors.FFMS_ERROR_CODEC)
+                throw new ArgumentException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -472,7 +485,7 @@ namespace FFMSSharp
         /// <seealso cref="SetInputFormat(int, ColorSpace, ColorRange)"/>
         public void ResetInputFormat()
         {
-            NativeMethods.FFMS_ResetInputFormatV(FFMS_VideoSource);
+            NativeMethods.FFMS_ResetInputFormatV(_nativePtr);
 
             MarkLastFrameAsInvalid();
         }
@@ -493,18 +506,20 @@ namespace FFMSSharp
         public Frame GetFrame(int frame)
         {
             if (frame < 0 || frame > NumberOfFrames - 1)
-                throw new ArgumentOutOfRangeException("frame", "That frame doesn't exist.");
+                throw new ArgumentOutOfRangeException(@"frame", "That frame doesn't exist.");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
+            var err = new FFMS_ErrorInfo
+            {
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
             MarkLastFrameAsInvalid();
 
-            IntPtr framePtr = IntPtr.Zero;
+            IntPtr framePtr;
             lock (this)
             {
-                framePtr = NativeMethods.FFMS_GetFrame(FFMS_VideoSource, frame, ref err);
+                framePtr = NativeMethods.FFMS_GetFrame(_nativePtr, frame, ref err);
             }
 
             if (framePtr == IntPtr.Zero)
@@ -532,18 +547,20 @@ namespace FFMSSharp
         public Frame GetFrame(double time)
         {
             if (time < 0 || time > LastTime)
-                throw new ArgumentOutOfRangeException("time", "That frame doesn't exist.");
+                throw new ArgumentOutOfRangeException(@"time", "That frame doesn't exist.");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
+            var err = new FFMS_ErrorInfo
+            {
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
             MarkLastFrameAsInvalid();
 
-            IntPtr framePtr = IntPtr.Zero;
+            IntPtr framePtr;
             lock (this)
             {
-                 framePtr = NativeMethods.FFMS_GetFrameByTime(FFMS_VideoSource, time, ref err);
+                 framePtr = NativeMethods.FFMS_GetFrameByTime(_nativePtr, time, ref err);
             }
 
             if (framePtr == IntPtr.Zero)

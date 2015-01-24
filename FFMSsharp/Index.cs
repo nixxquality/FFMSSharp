@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace FFMSSharp
 {
     #region Interop
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
@@ -43,6 +45,25 @@ namespace FFMSSharp
 
         [DllImport("ffms2.dll", SetLastError = false)]
         public static extern IntPtr FFMS_GetTrackFromIndex(SafeIndexHandle Index, int Track);
+    }
+
+    internal class SafeIndexHandle : SafeHandle
+    {
+        private SafeIndexHandle()
+            : base(IntPtr.Zero, true)
+        {
+        }
+
+        public override bool IsInvalid
+        {
+            get { return handle == IntPtr.Zero; }
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            NativeMethods.FFMS_DestroyIndex(handle);
+            return true;
+        }
     }
 
     #endregion
@@ -180,25 +201,6 @@ namespace FFMSSharp
 
     #endregion
 
-    internal class SafeIndexHandle : SafeHandle
-    {
-        private SafeIndexHandle()
-            : base(IntPtr.Zero, true)
-        {
-        }
-
-        public override bool IsInvalid
-        {
-            get { return handle == IntPtr.Zero; }
-        }
-
-        protected override bool ReleaseHandle()
-        {
-            NativeMethods.FFMS_DestroyIndex(handle);
-            return true;
-        }
-    }
-
     /// <summary>
     /// Index of a media file
     /// </summary>
@@ -208,9 +210,9 @@ namespace FFMSSharp
     /// </remarks>
     public class Index : IDisposable
     {
-        SafeIndexHandle handle;
+        readonly SafeIndexHandle _handle;
 
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// Source module that was used in creating the index
@@ -223,7 +225,7 @@ namespace FFMSSharp
         {
             get
             {
-                return (Source)NativeMethods.FFMS_GetSourceType(handle);
+                return (Source)NativeMethods.FFMS_GetSourceType(_handle);
             }
         }
 
@@ -238,7 +240,7 @@ namespace FFMSSharp
         {
             get
             {
-                return (IndexErrorHandling)NativeMethods.FFMS_GetErrorHandling(handle);
+                return (IndexErrorHandling)NativeMethods.FFMS_GetErrorHandling(_handle);
             }
         }
 
@@ -252,7 +254,7 @@ namespace FFMSSharp
         {
             get
             {
-                return NativeMethods.FFMS_GetNumTracks(handle);
+                return NativeMethods.FFMS_GetNumTracks(_handle);
             }
         }
 
@@ -272,33 +274,32 @@ namespace FFMSSharp
         /// <exception cref="NotSupportedException">Trying to read an index file for a <see cref="Source">Source</see> that is not available in the ffms2.dll.</exception>
         public Index(string indexFile)
         {
-            if (indexFile == null)
-                throw new ArgumentNullException("indexFile");
+            if (indexFile == null) throw new ArgumentNullException(@"indexFile");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            byte[] IndexFile = new byte[indexFile.Length];
-            IndexFile = System.Text.Encoding.UTF8.GetBytes(indexFile);
-            handle = NativeMethods.FFMS_ReadIndex(IndexFile, ref err);
-
-            if (handle.IsInvalid)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
-                    throw new System.IO.IOException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
-                    throw new System.IO.FileNotFoundException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
-                    throw new NotSupportedException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var indexFileBytes = Encoding.UTF8.GetBytes(indexFile);
+            _handle = NativeMethods.FFMS_ReadIndex(indexFileBytes, ref err);
+
+            if (!_handle.IsInvalid) return;
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                throw new System.IO.IOException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
+                throw new System.IO.FileNotFoundException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
+                throw new NotSupportedException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
-        internal Index(SafeIndexHandle Index)
+        internal Index(SafeIndexHandle index)
         {
-            handle = Index;
+            _handle = index;
         }
 
         /// <summary>
@@ -316,9 +317,9 @@ namespace FFMSSharp
         /// <param name="disposing">This doesn't do anything.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (handle != null && !handle.IsInvalid)
+            if (_handle != null && !_handle.IsInvalid)
             {
-                handle.Dispose();
+                _handle.Dispose();
             }
         }
 
@@ -338,21 +339,20 @@ namespace FFMSSharp
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Trying to find a type of track that doesn't exist in the media file.</exception>
         public int GetFirstTrackOfType(TrackType type)
         {
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            int track = NativeMethods.FFMS_GetFirstTrackOfType(handle, (int)type, ref err);
-
-            if (track < 0)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
-                    throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var track = NativeMethods.FFMS_GetFirstTrackOfType(_handle, (int)type, ref err);
 
-            return track;
+            if (track >= 0) return track;
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
+                throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -368,21 +368,20 @@ namespace FFMSSharp
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Trying to find a type of track that doesn't exist in the media file.</exception>
         public int GetFirstIndexedTrackOfType(TrackType type)
         {
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            int track = NativeMethods.FFMS_GetFirstIndexedTrackOfType(handle, (int)type, ref err);
-
-            if (track < 0)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
-                    throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var track = NativeMethods.FFMS_GetFirstIndexedTrackOfType(_handle, (int)type, ref err);
 
-            return track;
+            if (track >= 0) return track;
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NOT_AVAILABLE)
+                throw new System.Collections.Generic.KeyNotFoundException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -395,22 +394,22 @@ namespace FFMSSharp
         /// <exception cref="System.IO.IOException">Failure to write the index</exception>
         public void WriteIndex(string indexFile)
         {
-            if (indexFile == null)
-                throw new ArgumentNullException("indexFile");
+            if (indexFile == null) throw new ArgumentNullException(@"indexFile");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            byte[] IndexFile = new byte[indexFile.Length];
-            IndexFile = System.Text.Encoding.UTF8.GetBytes(indexFile);
-            if (NativeMethods.FFMS_WriteIndex(IndexFile, handle, ref err) != 0)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
-                    throw new System.IO.IOException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var indexFileBytes = Encoding.UTF8.GetBytes(indexFile);
+
+            if (NativeMethods.FFMS_WriteIndex(indexFileBytes, _handle, ref err) == 0) return;
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                throw new System.IO.IOException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -419,30 +418,29 @@ namespace FFMSSharp
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_IndexBelongsToFile</c>.</para>
         /// <para>Makes a heuristic (but very reliable) guess about whether the index is of the <paramref name="sourceFile"/> or not.</para>
-        /// <para>Useful to determine if the index object you just created by <see cref="FFMSSharp.Index.Index(string)">loading an index file from disk</see> is actually relevant to your interests, since the only two ways to pair up index files with source files are a) trust the user blindly, or b) comparing the filenames; neither is very reliable.</para>
+        /// <para>Useful to determine if the index object you just created by <see cref="Index(string)">loading an index file from disk</see> is actually relevant to your interests, since the only two ways to pair up index files with source files are a) trust the user blindly, or b) comparing the filenames; neither is very reliable.</para>
         /// </remarks>
         /// <param name="sourceFile">File to check against</param>
         /// <returns>True or false depending on the result</returns>
         public bool BelongsToFile(string sourceFile)
         {
-            if (sourceFile == null)
-                throw new ArgumentNullException("sourceFile");
+            if (sourceFile == null) throw new ArgumentNullException(@"sourceFile");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            byte[] SourceFile = new byte[sourceFile.Length];
-            SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            if (NativeMethods.FFMS_IndexBelongsToFile(handle, SourceFile, ref err) != 0)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
-                    return false;
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var sourceFileBytes = Encoding.UTF8.GetBytes(sourceFile);
 
-            return true;
+            if (NativeMethods.FFMS_IndexBelongsToFile(_handle, sourceFileBytes, ref err) == 0)
+                return true;
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
+                return false;
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         #endregion
@@ -474,33 +472,29 @@ namespace FFMSSharp
         /// <exception cref="InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         public VideoSource VideoSource(string sourceFile, int track, int threads = 1, SeekMode seekMode = SeekMode.Normal)
         {
-            if (sourceFile == null)
-                throw new ArgumentNullException("sourceFile");
+            if (sourceFile == null) throw new ArgumentNullException(@"sourceFile");
 
-            IntPtr videoSource = IntPtr.Zero;
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            byte[] SourceFile = new byte[sourceFile.Length];
-            SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            videoSource = NativeMethods.FFMS_CreateVideoSource(SourceFile, track, handle, threads, (int)seekMode, ref err);
-
-            if (videoSource == IntPtr.Zero)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
-                    throw new System.IO.FileLoadException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
-                    throw new System.IO.FileNotFoundException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
-                    throw new ArgumentException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
-                    throw new InvalidOperationException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var sourceFileBytes = Encoding.UTF8.GetBytes(sourceFile);
+            var videoSource = NativeMethods.FFMS_CreateVideoSource(sourceFileBytes, track, _handle, threads, (int)seekMode, ref err);
 
-            return new FFMSSharp.VideoSource(videoSource);
+            if (videoSource != IntPtr.Zero) return new VideoSource(videoSource);
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                throw new System.IO.FileLoadException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
+                throw new System.IO.FileNotFoundException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                throw new ArgumentException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
+                throw new InvalidOperationException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -523,33 +517,29 @@ namespace FFMSSharp
         /// <exception cref="InvalidOperationException">Supplying the wrong <paramref name="sourceFile"/></exception>
         public AudioSource AudioSource(string sourceFile, int track, AudioDelayMode delayMode = AudioDelayMode.FirstVideoTrack)
         {
-            if (sourceFile == null)
-                throw new ArgumentNullException("sourceFile");
+            if (sourceFile == null) throw new ArgumentNullException(@"sourceFile");
 
-            IntPtr audioSource = IntPtr.Zero;
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            byte[] SourceFile = new byte[sourceFile.Length];
-            SourceFile = System.Text.Encoding.UTF8.GetBytes(sourceFile);
-            audioSource = NativeMethods.FFMS_CreateAudioSource(SourceFile, track, handle, (int)delayMode, ref err);
-
-            if (audioSource == IntPtr.Zero)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
-                    throw new System.IO.FileLoadException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
-                    throw new System.IO.FileNotFoundException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
-                    throw new ArgumentException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
-                    throw new InvalidOperationException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var sourceFileBytes = Encoding.UTF8.GetBytes(sourceFile);
+            var audioSource = NativeMethods.FFMS_CreateAudioSource(sourceFileBytes, track, _handle, (int)delayMode, ref err);
 
-            return new FFMSSharp.AudioSource(audioSource);
+            if (audioSource != IntPtr.Zero) return new AudioSource(audioSource);
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ)
+                throw new System.IO.FileLoadException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
+                throw new System.IO.FileNotFoundException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_INVALID_ARGUMENT)
+                throw new ArgumentException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_INDEX && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_MISMATCH)
+                throw new InvalidOperationException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         /// <summary>
@@ -569,14 +559,12 @@ namespace FFMSSharp
         /// <exception cref="ArgumentOutOfRangeException">Trying to access a Track that doesn't exist.</exception>
         public Track GetTrack(int track)
         {
-            IntPtr trackPtr = IntPtr.Zero;
+            if (track < 0 || track > NativeMethods.FFMS_GetNumTracks(_handle))
+                throw new ArgumentOutOfRangeException(@"track", "That track doesn't exist.");
 
-            if (track < 0 || track > NativeMethods.FFMS_GetNumTracks(handle))
-                throw new ArgumentOutOfRangeException("track", "That track doesn't exist.");
+            var trackPtr = NativeMethods.FFMS_GetTrackFromIndex(_handle, track);
 
-            trackPtr = NativeMethods.FFMS_GetTrackFromIndex(handle, track);
-
-            return new FFMSSharp.Track(trackPtr);
+            return new Track(trackPtr);
         }
 
         #endregion

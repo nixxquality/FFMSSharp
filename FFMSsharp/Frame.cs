@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Drawing;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FFMSSharp
 {
     #region Interop
 
     [StructLayout(LayoutKind.Sequential)]
+    // ReSharper disable InconsistentNaming
     class FFMS_Frame
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
@@ -42,6 +43,7 @@ namespace FFMSSharp
     /// <para>The numerical constants are the same as in the MPEG-2 specification.</para>
     /// <para>Some of these are specified or aliased in a number of places.</para>
     /// </remarks>
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum ColorSpace
     {
         /// <summary>
@@ -126,6 +128,7 @@ namespace FFMSSharp
     /// <remarks>
     /// <para>In FFMS2, the equivalent is <c>FFMS_ColorRanges</c>.</para>
     /// </remarks>
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum ColorRange
     {
         /// <summary>
@@ -166,10 +169,10 @@ namespace FFMSSharp
     /// </remarks>
     public class Frame
     {
-        FFMS_Frame FFMS_Frame;
+        readonly FFMS_Frame _nativeStruct;
         internal bool Invalid;
 
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// A list of pointers to the pixel data
@@ -185,12 +188,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return new ReadOnlyCollection<IntPtr>(FFMS_Frame.Data);
+                return new ReadOnlyCollection<IntPtr>(_nativeStruct.Data);
             }
         }
+
         /// <summary>
         /// A list of integers representing the length of each scan line in each of the four picture planes, in bytes
         /// </summary>
@@ -206,12 +209,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return new ReadOnlyCollection<int>(FFMS_Frame.Linesize);
+                return new ReadOnlyCollection<int>(_nativeStruct.Linesize);
             }
         }
+
         /// <summary>
         /// The original resolution of the frame (in pixels)
         /// </summary>
@@ -225,12 +228,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return new Size(FFMS_Frame.EncodedWidth, FFMS_Frame.EncodedHeight);
+                return new Size(_nativeStruct.EncodedWidth, _nativeStruct.EncodedHeight);
             }
         }
+
         /// <summary>
         /// The original pixel format of the frame
         /// </summary>
@@ -243,12 +246,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return FFMS_Frame.EncodedPixelFormat;
+                return _nativeStruct.EncodedPixelFormat;
             }
         }
+
         /// <summary>
         /// The output resolution of the frame (in pixels)
         /// </summary>
@@ -261,12 +264,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return new Size(FFMS_Frame.ScaledWidth, FFMS_Frame.ScaledHeight);
+                return new Size(_nativeStruct.ScaledWidth, _nativeStruct.ScaledHeight);
             }
         }
+
         /// <summary>
         /// The output pixel format of the frame
         /// </summary>
@@ -279,12 +282,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return FFMS_Frame.ConvertedPixelFormat;
+                return _nativeStruct.ConvertedPixelFormat;
             }
         }
+
         /// <summary>
         /// Is this a keyframe?
         /// </summary>
@@ -296,12 +299,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return FFMS_Frame.KeyFrame != 0;
+                return _nativeStruct.KeyFrame != 0;
             }
         }
+
         /// <summary>
         /// An integer representing the RFF flag for this frame
         /// </summary>
@@ -315,12 +318,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return FFMS_Frame.RepeatPict;
+                return _nativeStruct.RepeatPict;
             }
         }
+
         /// <summary>
         /// Is this an interlaced frame?
         /// </summary>
@@ -332,12 +335,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return FFMS_Frame.InterlacedFrame != 0;
+                return _nativeStruct.InterlacedFrame != 0;
             }
         }
+
         /// <summary>
         /// Is the top field first?
         /// </summary>
@@ -350,12 +353,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return FFMS_Frame.TopFieldFirst != 0;
+                return _nativeStruct.TopFieldFirst != 0;
             }
         }
+
         /// <summary>
         /// A single character denoting coding type (I/B/P etc) of the compressed frame
         /// </summary>
@@ -367,12 +370,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return FFMS_Frame.PictType;
+                return _nativeStruct.PictType;
             }
         }
+
         /// <summary>
         /// Identifies the YUV color coefficients used in the frame
         /// </summary>
@@ -385,12 +388,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return (ColorSpace)FFMS_Frame.ColorSpace;
+                return (ColorSpace)_nativeStruct.ColorSpace;
             }
         }
+
         /// <summary>
         /// Identifies the luma range of the frame
         /// </summary>
@@ -403,12 +406,12 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid) throw new ObjectDisposedException(@"Frame");
 
-                return (ColorRange)FFMS_Frame.ColorRange;
+                return (ColorRange)_nativeStruct.ColorRange;
             }
         }
+
         /// <summary>
         /// Turn the pixel data into a <see cref="Bitmap">Bitmap</see>
         /// </summary>
@@ -420,13 +423,13 @@ namespace FFMSSharp
         {
             get
             {
-                if (this.Invalid)
-                    throw new ObjectDisposedException("Frame");
+                if (Invalid)
+                    throw new ObjectDisposedException(@"Frame");
 
-                if (FFMS_Frame.ConvertedPixelFormat != FFMS2.GetPixelFormat("bgra"))
+                if (_nativeStruct.ConvertedPixelFormat != FFMS2.GetPixelFormat(@"bgra"))
                     throw new InvalidOperationException("You can only use this function with the brga output format");
 
-                return new Bitmap(FFMS_Frame.ScaledWidth, FFMS_Frame.ScaledHeight, FFMS_Frame.ScaledWidth * 4, System.Drawing.Imaging.PixelFormat.Format32bppArgb, FFMS_Frame.Data[0]);
+                return new Bitmap(_nativeStruct.ScaledWidth, _nativeStruct.ScaledHeight, _nativeStruct.ScaledWidth * 4, System.Drawing.Imaging.PixelFormat.Format32bppArgb, _nativeStruct.Data[0]);
             }
         }
 
@@ -434,9 +437,9 @@ namespace FFMSSharp
 
         #region Constructor
 
-        internal Frame(IntPtr Frame)
+        internal Frame(IntPtr frame)
         {
-            FFMS_Frame = (FFMS_Frame)Marshal.PtrToStructure(Frame, typeof(FFMS_Frame));
+            _nativeStruct = (FFMS_Frame)Marshal.PtrToStructure(frame, typeof(FFMS_Frame));
         }
 
         #endregion

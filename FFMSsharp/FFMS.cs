@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 [assembly: CLSCompliant(false)]
@@ -6,8 +7,9 @@ namespace FFMSSharp
 {
     #region Interop
 
+    // ReSharper disable once InconsistentNaming
     [StructLayout(LayoutKind.Sequential)]
-    unsafe struct FFMS_ErrorInfo
+    struct FFMS_ErrorInfo
     {
         internal FFMS_Errors ErrorType;
         internal FFMS_Errors SubType;
@@ -16,6 +18,7 @@ namespace FFMSSharp
         public string Buffer;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     static partial class NativeMethods
     {
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -48,6 +51,7 @@ namespace FFMSSharp
 
     #region Constants
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     enum FFMS_Errors
     {
         FFMS_ERROR_SUCCESS = 0,
@@ -89,10 +93,12 @@ namespace FFMSSharp
         /// No output
         /// </summary>
         Quiet = -8,
+
         /// <summary>
         /// Something went really wrong and we will crash now
         /// </summary>
         Panic = 0,
+
         /// <summary>
         /// Something went wrong and recovery is not possible
         /// </summary>
@@ -101,6 +107,7 @@ namespace FFMSSharp
         /// on headers or an illegal combination of parameters is used.
         /// </remarks>
         Fatal = 8,
+
         /// <summary>
         /// Something went wrong and cannot losslessly be recovered
         /// </summary>
@@ -108,6 +115,7 @@ namespace FFMSSharp
         /// However, not all future data is affected.
         /// </remarks>
         Error = 16,
+
         /// <summary>
         /// Something somehow does not look correct
         /// </summary>
@@ -115,61 +123,21 @@ namespace FFMSSharp
         /// This may or may not lead to problems. An example would be the use of '-vstrict -2'.
         /// </remarks>
         Warning = 24,
+
         /// <summary>
         /// Show regular information
         /// </summary>
         Info = 32,
+
         /// <summary>
         /// Show lots of information
         /// </summary>
         Verbose = 40,
+
         /// <summary>
         /// Stuff which is only useful for libav* developers
         /// </summary>
         Debug = 48
-    }
-
-    #endregion
-
-    #region Simple classes for special data representation
-
-    /// <summary>
-    /// Simple representation of a selection rectangle
-    /// </summary>
-    public class Selection
-    {
-        int top;
-        int left;
-        int right;
-        int bottom;
-        /// <summary>
-        /// Amount of Top to crop
-        /// </summary>
-        public int Top
-        { get { return top; } }
-        /// <summary>
-        /// Amount of Left to crop
-        /// </summary>
-        public int Left
-        { get { return left; } }
-        /// <summary>
-        /// Amount of Right to crop
-        /// </summary>
-        public int Right
-        { get { return right; } }
-        /// <summary>
-        /// Amount of Bottom to crop
-        /// </summary>
-        public int Bottom
-        { get { return bottom; } }
-
-        internal Selection(int Top, int Left, int Right, int Bottom)
-        {
-            top = Top;
-            left = Left;
-            right = Right;
-            bottom = Bottom;
-        }
     }
 
     #endregion
@@ -179,37 +147,29 @@ namespace FFMSSharp
     /// </summary>
     public static class FFMS2
     {
-        #region Private properties
-
-        private static bool initialized;
-        private static int presentSources;
-        private static int enabledSources;
-
-        #endregion
-
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// Is FFMS2 initialized?
         /// </summary>
-        public static bool Initialized
-        { get { return initialized; } }
+        public static bool Initialized { get; private set; }
+
         /// <summary>
         /// Source modules that the library was compiled with
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetPresentSources</c>.</para>
         /// </remarks>
-        public static int PresentSources
-        { get { return presentSources; } }
+        public static int PresentSources { get; private set; }
+
         /// <summary>
         /// Source modules that are actually available for use
         /// </summary>
         /// <remarks>
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetEnabledSources</c>.</para>
         /// </remarks>
-        public static int EnabledSources
-        { get { return enabledSources; } }
+        public static int EnabledSources { get; private set; }
+
         /// <summary>
         /// The FFMS_VERSION constant
         /// </summary>
@@ -220,6 +180,7 @@ namespace FFMSSharp
         /// <seealso cref="VersionString"/>
         public static int Version
         { get { return NativeMethods.FFMS_GetVersion(); } }
+
         /// <summary>
         /// A human-readable version of the FFMS_VERSION constant
         /// </summary>
@@ -229,25 +190,24 @@ namespace FFMSSharp
         {
             get
             {
-                int major = Version >> 24;
-                int minor = (Version >> 16) & 0xFF;
-                int micro = (Version >> 8) & 0xFF;
-                int bump = Version & 0xFF;
+                var major = Version >> 24;
+                var minor = (Version >> 16) & 0xFF;
+                var micro = (Version >> 8) & 0xFF;
+                var bump = Version & 0xFF;
 
                 if (bump != 0)
                 {
                     return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}.{1}.{2}.{3}", major, minor, micro, bump);
                 }
-                else if (micro != 0)
+                if (micro != 0)
                 {
                     return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}.{1}.{2}", major, minor, micro);
                 }
-                else
-                {
-                    return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}.{1}", major, minor);
-                }
+                
+                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}.{1}", major, minor);
             }
         }
+
         /// <summary>
         /// FFmpeg message level
         /// </summary>
@@ -280,11 +240,9 @@ namespace FFMSSharp
         /// </remarks>
         public static void Initialize(string dllPath = null)
         {
-            if (initialized)
-                return;
+            if (Initialized) return;
 
-            if (dllPath != null)
-                NativeMethods.SetDllDirectoryW(dllPath);
+            if (dllPath != null) NativeMethods.SetDllDirectoryW(dllPath);
 
             try
             {
@@ -295,10 +253,10 @@ namespace FFMSSharp
                 throw new DllNotFoundException("Cannot locate ffms2.dll");
             }
 
-            presentSources = NativeMethods.FFMS_GetPresentSources();
-            enabledSources = NativeMethods.FFMS_GetEnabledSources();
+            PresentSources = NativeMethods.FFMS_GetPresentSources();
+            EnabledSources = NativeMethods.FFMS_GetEnabledSources();
 
-            initialized = true;
+            Initialized = true;
         }
 
         /// <summary>
@@ -308,7 +266,7 @@ namespace FFMSSharp
         /// <returns>The result</returns>
         public static bool IsSourcePresent(Source option)
         {
-            return Convert.ToBoolean(presentSources & (int)option);
+            return Convert.ToBoolean(PresentSources & (int)option);
         }
 
         /// <summary>
@@ -318,7 +276,7 @@ namespace FFMSSharp
         /// <returns>The result</returns>
         public static bool IsSourceEnabled(Source option)
         {
-            return Convert.ToBoolean(enabledSources & (int)option);
+            return Convert.ToBoolean(EnabledSources & (int)option);
         }
 
         /// <summary>
@@ -344,7 +302,7 @@ namespace FFMSSharp
             }
             catch (ArgumentException e)
             {
-                throw new ArgumentException("The identifier must be an ASCII string.", "name", e);
+                throw new ArgumentException("The identifier must be an ASCII string.", @"name", e);
             }
         }
 

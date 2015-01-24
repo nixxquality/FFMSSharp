@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace FFMSSharp
 {
     #region Interop
 
+    // ReSharper disable once InconsistentNaming
     [StructLayout(LayoutKind.Sequential)]
     class FFMS_TrackTimeBase
     {
@@ -12,6 +15,7 @@ namespace FFMSSharp
         public long Den;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     static partial class NativeMethods
     {
         [DllImport("ffms2.dll", SetLastError = false)]
@@ -98,14 +102,10 @@ namespace FFMSSharp
     /// </remarks>
     public class Track
     {
-        #region Private properties
+        readonly IntPtr _nativePtr;
+        readonly FFMS_TrackTimeBase _trackTimeBase;
 
-        IntPtr FFMS_Track;
-        FFMS_TrackTimeBase TrackTimeBase;
-
-        #endregion
-
-        #region Accessors
+        #region Properties
 
         /// <summary>
         /// The basic time unit of the track
@@ -117,7 +117,7 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="TimeBaseDenominator"/>
         public long TimeBaseNumerator
-        { get { return TrackTimeBase.Num; } }
+        { get { return _trackTimeBase.Num; } }
 
         /// <summary>
         /// The basic time unit of the track
@@ -129,7 +129,7 @@ namespace FFMSSharp
         /// </remarks>
         /// <seealso cref="TimeBaseNumerator"/>
         public long TimeBaseDenominator
-        { get { return TrackTimeBase.Den; } }
+        { get { return _trackTimeBase.Den; } }
 
         /// <summary>
         /// The type of the track
@@ -138,7 +138,7 @@ namespace FFMSSharp
         /// <para>In FFMS2, the equivalent is <c>FFMS_GetTrackType</c>.</para>
         /// </remarks>
         public TrackType TrackType
-        { get { return (TrackType)NativeMethods.FFMS_GetTrackType(FFMS_Track); } }
+        { get { return (TrackType)NativeMethods.FFMS_GetTrackType(_nativePtr); } }
 
         /// <summary>
         /// The number of frames in the track
@@ -149,17 +149,17 @@ namespace FFMSSharp
         /// <para>A return value of 0 indicates the track has not been indexed.</para>
         /// </remarks>
         public int NumberOfFrames
-        { get { return NativeMethods.FFMS_GetNumFrames(FFMS_Track); } }
+        { get { return NativeMethods.FFMS_GetNumFrames(_nativePtr); } }
 
         #endregion
 
         #region Constructor
 
-        internal Track(IntPtr Track)
+        internal Track(IntPtr track)
         {
-            FFMS_Track = Track;
-            IntPtr propPtr = NativeMethods.FFMS_GetTimeBase(Track);
-            TrackTimeBase = (FFMS_TrackTimeBase)Marshal.PtrToStructure(propPtr, typeof(FFMS_TrackTimeBase));
+            _nativePtr = track;
+            var propPtr = NativeMethods.FFMS_GetTimeBase(track);
+            _trackTimeBase = (FFMS_TrackTimeBase)Marshal.PtrToStructure(propPtr, typeof(FFMS_TrackTimeBase));
         }
 
         #endregion
@@ -178,26 +178,27 @@ namespace FFMSSharp
         /// <exception cref="System.IO.IOException">Failure to open or write to the file</exception>
         public void WriteTimecodes(string timecodeFile)
         {
-            if (timecodeFile == null)
-                throw new ArgumentNullException("timecodeFile");
+            if (timecodeFile == null) throw new ArgumentNullException(@"timecodeFile");
 
-            FFMS_ErrorInfo err = new FFMS_ErrorInfo();
-            err.BufferSize = 1024;
-            err.Buffer = new String((char)0, 1024);
-
-            byte[] TimecodeFile = new byte[timecodeFile.Length];
-            TimecodeFile = System.Text.Encoding.UTF8.GetBytes(timecodeFile);
-            if (NativeMethods.FFMS_WriteTimecodes(FFMS_Track, TimecodeFile, ref err) != 0)
+            var err = new FFMS_ErrorInfo
             {
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ) // FFMS2 2.19 throws this type of error
-                    throw new System.IO.IOException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_TRACK && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
-                    throw new System.IO.IOException(err.Buffer);
-                if (err.ErrorType == FFMS_Errors.FFMS_ERROR_TRACK && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_WRITE)
-                    throw new System.IO.IOException(err.Buffer);
+                BufferSize = 1024,
+                Buffer = new String((char) 0, 1024)
+            };
 
-                throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
-            }
+            var timecodeFileBytes = Encoding.UTF8.GetBytes(timecodeFile);
+
+            if (NativeMethods.FFMS_WriteTimecodes(_nativePtr, timecodeFileBytes, ref err) == 0)
+                return;
+
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_PARSER && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_READ) // FFMS2 2.19 throws this type of error
+                throw new System.IO.IOException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_TRACK && err.SubType == FFMS_Errors.FFMS_ERROR_NO_FILE)
+                throw new System.IO.IOException(err.Buffer);
+            if (err.ErrorType == FFMS_Errors.FFMS_ERROR_TRACK && err.SubType == FFMS_Errors.FFMS_ERROR_FILE_WRITE)
+                throw new System.IO.IOException(err.Buffer);
+
+            throw new NotImplementedException(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Unknown FFMS2 error encountered: ({0}, {1}, '{2}'). Please report this issue on FFMSSharp's GitHub.", err.ErrorType, err.SubType, err.Buffer));
         }
 
         #endregion
@@ -218,9 +219,9 @@ namespace FFMSSharp
             if (TrackType != TrackType.Video)
                 throw new InvalidOperationException("You can only use this function on video tracks.");
 
-            IntPtr FrameInfoPtr = NativeMethods.FFMS_GetFrameInfo(FFMS_Track, frame);
+            var frameInfoPtr = NativeMethods.FFMS_GetFrameInfo(_nativePtr, frame);
 
-            return new FrameInfo((FFMS_FrameInfo)Marshal.PtrToStructure(FrameInfoPtr, typeof(FFMS_FrameInfo)));
+            return new FrameInfo((FFMS_FrameInfo)Marshal.PtrToStructure(frameInfoPtr, typeof(FFMS_FrameInfo)));
         }
 
         #endregion
