@@ -179,7 +179,7 @@ namespace Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(IOException))]
+        [ExpectedException(typeof(FileNotFoundException))]
         public void ReadIndexFileNotFound()
         {
             Index index = new Index("this file doesn't exist.avi");
@@ -230,8 +230,8 @@ namespace Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(FileLoadException))]
-        public void VideoSourceFileLoadException()
+        [ExpectedException(typeof(FileNotFoundException))]
+        public void VideoSourceFileNotFoundException()
         {
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             VideoSource source = index.VideoSource("this file doesn't exist.avi", 0);
@@ -473,8 +473,8 @@ namespace Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(FileLoadException))]
-        public void AudioSourceFileLoadException()
+        [ExpectedException(typeof(FileNotFoundException))]
+        public void AudioSourceFileNotFoundException()
         {
             Index index = new Index("h264_720p_hp_5.1_3mbps_vorbis_styled_and_unstyled_subs_suzumiya.ffindex");
             AudioSource source = index.AudioSource("this file doesn't exist.avi", 1);
@@ -538,7 +538,7 @@ namespace Tests
             using (var md5 = MD5.Create())
             using (var stream = File.OpenRead("timecodes.txt"))
             {
-                Assert.AreEqual("99-ED-D0-4D-D5-09-42-48-60-E8-CD-DC-A5-F7-68-C3", BitConverter.ToString(md5.ComputeHash(stream)));
+                Assert.AreEqual("53-20-BD-47-0A-01-1A-E4-13-E9-1E-C1-C6-21-69-EC", BitConverter.ToString(md5.ComputeHash(stream)));
             }
         }
 
