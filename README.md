@@ -1,5 +1,9 @@
-FFMS# [![Build status](https://ci.appveyor.com/api/projects/status/mamdalshsmrq49rh)](https://ci.appveyor.com/project/nixxquality/ffmssharp)
+FFMS# 
 =====
+
+Notice
+------
+**This project has moved to [GitGud](http://gitgud.io/nixx/FFMSSharp). See you there!**
 
 C# wrapper for [FFMS2](//github.com/ffms/ffms2)
 
